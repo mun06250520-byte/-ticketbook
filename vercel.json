@@ -1,3 +1,4 @@
-{
-  "functions": { "api/read-poster.js": { "maxDuration": 60 } }
-}
+   {
+     "outputDirectory": "public",
+     "functions": { "api/read-poster.js": { "maxDuration": 60 } }
+   }
