@@ -1,0 +1,3 @@
+{
+  "functions": { "api/read-poster.js": { "maxDuration": 60 } }
+}
