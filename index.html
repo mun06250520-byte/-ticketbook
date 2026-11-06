@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<title>Ticket Book</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="공연·페스티벌 포스터 한 장이면 팔찌와 티켓, 다이어리 한 장이 완성되는 기록 공책">
+<meta property="og:title" content="TICKET BOOK">
+<meta property="og:description" content="포스터 한 장 올리면 나만의 티켓·팔찌 기록이 완성돼요">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ff4f79">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}</style>
+</head>
+<body>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: one phone-width app column; journal-spread preview on top, felt-swatch controls below, sticky action bar */
+:root{
+  --bg:#eceef3; --surface:#ffffff; --sunk:#f4f5f8; --ink:#17181c; --muted:#6b6f7b; --line:#dcdfe6;
+  --accent:#ff4f79; --accent-ink:#ffffff; --focus:#2f6bff;
+  --f-ui:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --f-band:"Black Han Sans","Apple SD Gothic Neo",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121317; --surface:#1c1d23; --sunk:#25262d; --ink:#eef0f5; --muted:#9a9eab; --line:#30323b;
+  --accent:#ff6a8e; --accent-ink:#1a0c11; --focus:#7aa2ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121317; --surface:#1c1d23; --sunk:#25262d; --ink:#eef0f5; --muted:#9a9eab; --line:#30323b;
+  --accent:#ff6a8e; --accent-ink:#1a0c11; --focus:#7aa2ff; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-ui);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 120px}
+.app{max-width:440px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding-block:18px 10px}
+.brand{font-family:var(--f-band);font-size:24px;letter-spacing:.02em}
+.brand small{font-family:var(--f-ui);font-size:12px;color:var(--muted);margin-left:6px;letter-spacing:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+.btn{border:0;border-radius:14px;padding:13px 16px;font-weight:700;background:var(--sunk)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--muted);padding:8px 10px}
+.hero{background:var(--surface);border-radius:20px;padding:20px;display:grid;gap:12px;margin-block:6px 18px}
+.hero h1{font-size:21px;line-height:1.35;margin:0;text-wrap:balance}
+.hero p{margin:0;color:var(--muted);font-size:14px}
+.sec-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin:22px 0 10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--surface);border:0;border-radius:16px;padding:8px;text-align:left;display:grid;gap:6px}
+.card img{width:100%;aspect-ratio:4/5;border-radius:10px;display:block;background:var(--sunk)}
+.card b{font-size:14px;padding-inline:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card span{font-size:12px;color:var(--muted);padding-inline:4px}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--sunk);color:var(--muted);margin-left:4px}
+.preview{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:grid;gap:8px}
+.preview.static{position:static}
+.preview canvas{width:100%;max-width:100%;aspect-ratio:4/5;border-radius:14px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+@media (max-height:760px){.preview canvas{width:62%;margin:0 auto}}
+.panel{background:var(--surface);border-radius:18px;padding:16px;display:grid;gap:12px;margin-top:12px}
+.panel h2{font-size:16px;margin:0}
+.field{display:grid;gap:4px}
+.field label{font-size:12px;color:var(--muted);font-weight:500}
+.hint{font-size:12px;color:var(--muted)}
+input[type=text],input[type=date]{width:100%;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:12px;padding:11px 12px;font:inherit}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row2>*{min-width:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--sunk);border-radius:99px;padding:7px 12px;font-size:13px}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pose{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pose button{border:1px solid var(--line);background:var(--sunk);border-radius:14px;padding:10px 4px;display:grid;gap:2px;justify-items:center;font-size:12px}
+.pose button span{font-size:24px;line-height:1}
+.pose button[aria-pressed=true]{border-color:var(--ink);background:var(--surface);box-shadow:0 0 0 1px var(--ink) inset}
+.band{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px}
+.band-head{display:flex;align-items:center;gap:10px}
+.band-head canvas{flex:1;min-width:0;height:34px;border-radius:6px}
+.sw{display:flex;flex-wrap:wrap;gap:6px}
+.sw button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);padding:0}
+.sw button[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}
+.mini{font-size:12px;color:var(--muted);margin-bottom:-4px}
+.file{display:inline-flex;align-items:center;gap:6px;font-size:13px;border:1px dashed var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.bar-in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:8px}
+.search{display:flex;gap:8px}
+.search input{flex:1;min-width:0;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:12px;padding:11px 12px;font:inherit}
+.results{display:grid;gap:8px}
+.res{display:flex;gap:12px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:8px}
+.res:hover{border-color:var(--ink)}
+.res img{width:52px;height:70px;object-fit:cover;border-radius:8px;background:var(--sunk);flex:none}
+.res-t{display:grid;gap:2px;min-width:0}
+.res-t b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res-t span{font-size:12px;color:var(--muted)}
+.head-actions{display:flex;align-items:center;gap:6px}
+header{gap:8px}
+header .btn{white-space:nowrap}
+.brand{white-space:nowrap;min-width:0}
+@media (max-width:460px){.brand small{display:none}}
+.acct-btn{padding:8px 10px!important;font-size:13px;max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note{background:var(--surface);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:grid;gap:8px;font-size:13px}
+.note.muted{color:var(--muted)}
+.note-actions{display:flex;gap:6px;flex-wrap:wrap}
+.note-actions .btn{padding:9px 12px}
+.switch-row{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.switch-row input{width:22px;height:22px;margin-top:2px;accent-color:var(--accent);flex:none}
+.switch-row span{display:grid;gap:2px}
+.drop.small{padding:16px;margin-top:4px}
+.drop.small b{font-size:14px}
+.drop{display:grid;gap:6px;justify-items:center;text-align:center;border:2px dashed var(--line);border-radius:16px;padding:26px 16px;cursor:pointer;background:var(--sunk);position:relative}
+.drop.over{border-color:var(--accent)}
+.drop b{font-size:17px}
+.drop span{font-size:13px;color:var(--muted);max-width:30ch}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop-ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)!important;font-size:24px!important;font-weight:700}
+.poster-row{display:flex;gap:14px;align-items:flex-start}
+.poster-row img{width:88px;aspect-ratio:3/4;object-fit:cover;border-radius:10px;flex:none}
+.poster-info{display:grid;gap:6px;min-width:0}
+.poster-info b{font-size:16px;overflow-wrap:anywhere}
+.pill-k{justify-self:start;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--sunk);color:var(--muted)}
+.modal{position:fixed;inset:0;z-index:30;background:rgba(10,10,14,.72);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.modal-in{background:var(--surface);border-radius:18px;padding:14px;max-width:400px;width:100%;display:grid;gap:10px;max-height:88vh;overflow:auto}
+.modal-in img{width:100%;border-radius:10px}
+.modal-in p{margin:0;font-size:13px;color:var(--muted);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:13px;z-index:40}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface);padding:5px;border-radius:14px;margin-block:4px 12px}
+.tabs .chip{border:0;border-radius:10px;padding:9px 6px;font-weight:700;background:transparent;color:var(--muted)}
+.tabs .chip[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.book{position:relative;width:100%;max-width:100%;aspect-ratio:4/5;perspective:2400px;touch-action:pan-y;cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:14px}
+.half,.face{background-size:200% 100%;background-repeat:no-repeat;background-color:#e7e4df}
+.half{position:absolute;top:0;bottom:0;width:50%}
+.half.l{left:0;background-position:left center;border-radius:14px 0 0 14px}
+.half.r{right:0;background-position:right center;border-radius:0 14px 14px 0}
+.leaf{position:absolute;top:0;bottom:0;width:50%;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.35,.1,.2,1);z-index:2}
+.leaf.fwd{left:50%;transform-origin:left center}
+.leaf.bwd{left:0;transform-origin:right center}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.b{transform:rotateY(180deg)}
+.face::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.12),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,rgba(0,0,0,.08))}
+.book-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.book-nav span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.book-nav .btn{padding:10px 14px}
+.book-nav .btn:disabled{opacity:.35;cursor:default}
+.stage-hint{font-size:13px;color:var(--muted);text-align:center;margin:10px 0 0}
+#crowd{width:100%;max-width:100%;aspect-ratio:4/5;border-radius:14px;display:block;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.stage-actions{display:flex;justify-content:center;margin-top:10px}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .15s}.card:active{transform:scale(.97)}}
+</style>
+
+<div class="app" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const W=1080,H=1350;
+const F_BAND='"Black Han Sans","Apple SD Gothic Neo",sans-serif';
+// Pretendard is built from Inter (Latin) + Source Han Sans (Hangul = Noto Sans KR); this pair stands in for Pretendard Light
+const F_PRET='"Pretendard","Inter","Noto Sans KR","Apple SD Gothic Neo",sans-serif';
+const F_HAND='"Gaegu","Apple SD Gothic Neo",cursive';
+const PALETTE=['#ff4f79','#ff5a2e','#2f6bff','#ffd23f','#22c08a','#8b5cf6','#ff8a3d','#111216','#f4f4f2','#7fd6ff'];
+const SKINS=['#f6c3a3','#f7b8b8','#f8dc9b','#b9dcf5','#bfe6cf','#e9d3f5'];
+const LETTERS=['#7ccf9a','#b5e07c','#7fb6ff','#ff9fb8','#ffb85c','#b79bff'];
+const FLAGS=['#8ea0ff','#ff9fb8','#7ccf9a','#ffd23f'];
+const PATTERNS=[['solid','민무늬'],['stripe','줄무늬'],['dots','도트'],['check','체크'],['holo','홀로그램'],['poster','포스터']];
+let CUR_POSTER=null,DS=1.3,FLIP_P=null;
+const uniq=a=>[...new Set(a)];
+// colour choices taken from the poster: its colours plus a light and a deep tone of each
+function posterSet(pal,fallback,mode){
+  if(!pal||!pal.length)return fallback;
+  const light=pal.map(c=>shade(c,.55)),deep=pal.map(c=>shade(c,-.4));
+  const set=mode==='light'?[...light,...pal.filter(c=>lum(c)>.6),...pal.map(c=>shade(c,.75))]:[...pal,...light,...deep];
+  return uniq(set).slice(0,15);
+}
+const posterImg=rec=>rec&&rec.poster?getImg({id:'po_'+rec.id,img:rec.poster}):null;
+function extractPalette(img){
+  const c=document.createElement('canvas');c.width=c.height=40;const x=c.getContext('2d');x.drawImage(img,0,0,40,40);
+  const d=x.getImageData(0,0,40,40).data,bk={};
+  for(let i=0;i<d.length;i+=4){const k=(d[i]>>4)<<8|(d[i+1]>>4)<<4|(d[i+2]>>4),B=bk[k]||(bk[k]={n:0,r:0,g:0,b:0});B.n++;B.r+=d[i];B.g+=d[i+1];B.b+=d[i+2]}
+  const cols=Object.values(bk).map(B=>{const r=B.r/B.n,g=B.g/B.n,b=B.b/B.n,mx=Math.max(r,g,b),mn=Math.min(r,g,b);return{r,g,b,n:B.n,sat:mx?(mx-mn)/mx:0,l:(.299*r+.587*g+.114*b)/255}}).sort((a,b)=>b.n-a.n);
+  const pick=[],far=(a,b)=>Math.hypot(a.r-b.r,a.g-b.g,a.b-b.b)>70,add=c=>{if(c&&pick.every(q=>far(q,c)))pick.push(c)};
+  add(cols[0]);
+  const vivid=c=>c.sat*Math.sqrt(c.n)*(c.l>.15&&c.l<.92?1:.15);add([...cols].sort((a,b)=>vivid(b)-vivid(a))[0]);
+  for(const c of cols){if(pick.length>=5)break;add(c)}
+  return pick.map(c=>'#'+[c.r,c.g,c.b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join(''));
+}
+const POSES=[['rock','🤘','락'],['peace','✌️','브이'],['point','☝️','원픽'],['five','✋','하이파이브']];
+const PAPERS=[['cream','미색 노트'],['grid','모눈종이'],['kraft','크라프트지']];
+const KEY='bandlog.v2';
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+const TICKET_CATS=[['전시','EXHIBITION'],['콘서트','CONCERT'],['뮤지컬','MUSICAL'],['연극','PLAY'],['클래식','CLASSIC']];
+const TICKET_COLORS=['#f6d05a','#ffe3d3','#f4f4f2','#cfe6ff','#d9f2c4','#ff4f79','#2f6bff','#111216'];
+const TICKET_INKS=['#c8202e','#1b2b6b','#17181c','#ffffff','#ff4f79','#1f7a4d'];
+const SAMPLE_TICKET={id:'ex3',sample:true,kind:'ticket',title:'빛의/정원',flag:'EXHIBITION',date:'2026-09-14',place:'예술의전당',pose:'rock',skin:'#f8dc9b',letter:'#7fb6ff',flagColor:'#ff9fb8',paper:'cream',bands:[],
+  ticket:{cat:'전시',color:'#f6d05a',ink:'#1b2b6b',accent:'#ff4f79',seat:'일반 1매',no:'NO.0914',time:'14:00',cast:'미디어아트 12인',rating:4,review:'빛이 쏟아지는 방에서 한참 서 있었다',face:'photo'}};
+function sample(){return[SAMPLE_TICKET,
+ {id:'ex1',sample:true,title:'PEN/TA/PORT',flag:'ROCK FESTIVAL',date:'2026-08-02',place:'인천 송도',pose:'rock',skin:'#f6c3a3',letter:'#7ccf9a',flagColor:'#8ea0ff',paper:'cream',bands:[
+  {id:'b1',color:'#ff5a2e',color2:'#ffd23f',pattern:'stripe',text:'1DAY 8.2'}]},
+ {id:'ex2',sample:true,title:'서울/재즈/페스',flag:'JAZZ FESTA',date:'2026-05-30',place:'올림픽공원',pose:'peace',skin:'#b9dcf5',letter:'#b79bff',flagColor:'#ffd23f',paper:'grid',bands:[
+  {id:'b2',color:'#8b5cf6',color2:'#7fd6ff',pattern:'holo',text:'SAT 5.30'},
+  {id:'b3',color:'#111216',color2:'#ff8a3d',pattern:'stripe',text:'SUN 5.31'}]}
+]}
+let records;
+try{records=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!Array.isArray(records)||!records.length)records=sample();
+else if(records.some(r=>r.id==='ex1')&&!records.some(r=>r.id==='ex3'))records.push(JSON.parse(JSON.stringify(SAMPLE_TICKET)));
+records.forEach(r=>{if(r.kind==='ticket'&&r.ticket)r.ticket.face='photo'});
+function persist(){if(cloudOn())return true;localRecords=records;try{localStorage.setItem(KEY,JSON.stringify(records));return true}catch(e){return false}}
+let localRecords=records;
+const cloudOn=()=>!!(window.TBCloud&&window.TBCloud.user);
+const cloudConfigured=()=>!!(window.TBCloud&&window.TBCloud.configured);
+
+let view='home',draft=null,animT=1;
+const imgCache={};
+function getImg(b){
+  if(!b.img)return null;
+  let c=imgCache[b.id];
+  if(c&&c.src===b.img)return c.complete?c:null;
+  c=new Image();if(/^https?:/.test(b.img))c.crossOrigin='anonymous';c.onload=()=>{if(view==='edit')drawAll();else{clearPages();home()}};c.src=b.img;imgCache[b.id]=c;return null;
+}
+
+/* ---------- helpers ---------- */
+function rng(seed){let h=1779033703;for(const ch of seed)h=Math.imul(h^ch.charCodeAt(0),3432918353),h=h<<13|h>>>19;
+  return()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return((h^=h>>>16)>>>0)/4294967296}}
+function lum(hex){const n=parseInt(hex.slice(1),16);return(.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255}
+function shade(hex,k){const n=parseInt(hex.slice(1),16);const f=v=>Math.max(0,Math.min(255,Math.round(v+(k<0?v*k:(255-v)*k))));
+  return'#'+[n>>16,n>>8&255,n&255].map(f).map(v=>v.toString(16).padStart(2,'0')).join('')}
+function fmtDate(d){if(!d)return'';const[y,m,dd]=d.split('-');return`${y}. ${+m}. ${+dd}`}
+function fitFont(ctx,text,max,size,family,weight){let s=size;do{ctx.font=`${weight||''} ${s}px ${family}`;s-=2}while(ctx.measureText(text).width>max&&s>14);}
+const ease=t=>1-Math.pow(1-Math.max(0,Math.min(1,t)),3);
+
+/* ---------- wristband fabric ---------- */
+function drawStrip(ctx,b,L,t,phase){
+  ctx.fillStyle=b.color;ctx.fillRect(0,0,L,t);
+  const c2=b.color2;
+  if(b.pattern==='stripe'){ctx.fillStyle=c2;ctx.fillRect(0,t*.07,L,t*.1);ctx.fillRect(0,t*.83,L,t*.1)}
+  if(b.pattern==='dots'){ctx.fillStyle=c2;const s=t*.3;for(let x=-phase%s;x<L+s;x+=s){for(const y of[t*.14,t*.86]){ctx.beginPath();ctx.arc(x,y,t*.06,0,7);ctx.fill()}}}
+  if(b.pattern==='check'){ctx.save();ctx.globalAlpha=.35;ctx.fillStyle=c2;const s=t/4;for(let i=0;i*s<L+s;i++)for(let j=0;j<4;j++)if((i+j)%2)ctx.fillRect(i*s,j*s,s,s);ctx.restore()}
+  if(b.pattern==='holo'){const g=ctx.createLinearGradient(0,0,L,t);g.addColorStop(0,b.color);g.addColorStop(.35,c2);g.addColorStop(.55,'#ffffff');g.addColorStop(.75,c2);g.addColorStop(1,b.color);ctx.globalAlpha=.85;ctx.fillStyle=g;ctx.fillRect(0,0,L,t);ctx.globalAlpha=1}
+  if(b.pattern==='poster'&&CUR_POSTER){const im=CUR_POSTER,sc=Math.max(L/im.width,t/im.height),iw=im.width*sc,ih=im.height*sc;
+    ctx.drawImage(im,(L-iw)/2,(t-ih)*.42,iw,ih);ctx.fillStyle='rgba(0,0,0,.28)';ctx.fillRect(0,0,L,t);
+    ctx.fillStyle=b.color2;ctx.fillRect(0,0,L,t*.1);ctx.fillRect(0,t*.9,L,t*.1)}
+  const txt=(b.text||'').trim();
+  if(txt){
+    ctx.font=`${Math.round(t*.46)}px ${F_BAND}`;ctx.textBaseline='middle';ctx.textAlign='left';
+    ctx.fillStyle=b.pattern==='poster'&&CUR_POSTER?'#ffffff':b.pattern==='holo'?'#1b1530':(lum(b.color)>.62?'#17181c':'#ffffff');
+    const unit=txt+'  ★  ';const uw=ctx.measureText(unit).width||1;
+    for(let x=-(phase%uw);x<L;x+=uw)ctx.fillText(unit,x,t*.53);
+  }
+}
+function cover(ctx,img,w,h){const r=Math.max(w/img.width,h/img.height),iw=img.width*r,ih=img.height*r;ctx.drawImage(img,(w-iw)/2,(h-ih)/2,iw,ih)}
+function bandFace(ctx,b,w,h,phase){
+  ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
+  const img=getImg(b);if(img)cover(ctx,img,w,h);else drawStrip(ctx,b,w,h,phase);
+  ctx.restore();
+}
+
+/* ---------- paper-cut hand ---------- */
+// coordinates relative to the wrist centre; y grows downward, the hand rises into negative y
+function handPieces(pose){
+  const up={rock:[1,0,0,1],peace:[1,1,0,0],point:[1,0,0,0],five:[1,1,1,1],fist:[0,0,0,0]}[pose]||[0,0,0,0];
+  const slots=[{x:-92,h:215},{x:-30,h:238},{x:32,h:222},{x:92,h:176}],fw=58,top=-250;
+  const fingers=slots.map((s,i)=>up[i]?{x:s.x-fw/2,y:top-s.h+40,w:fw,h:s.h,up:1}:{x:s.x-fw/2,y:top-28,w:fw,h:66,up:0});
+  const thumb=pose==='five'?{x:-200,y:-210,w:62,h:170,rot:-.55}:{x:-152,y:-150,w:190,h:62,rot:0};
+  return{palm:{x:-130,y:-252,w:260,h:270,r:56},fingers,thumb};
+}
+function piece(ctx,p,fill,stitchCol,shadow){
+  ctx.save();
+  if(p.rot){ctx.translate(p.x+p.w/2,p.y+p.h/2);ctx.rotate(p.rot);ctx.translate(-(p.x+p.w/2),-(p.y+p.h/2))}
+  const r=p.r??Math.min(p.w,p.h)/2;
+  if(shadow){ctx.shadowColor='rgba(60,30,10,.28)';ctx.shadowBlur=14;ctx.shadowOffsetY=6}
+  ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(p.x,p.y,p.w,p.h,r);ctx.fill();ctx.shadowColor='transparent';
+  if(stitchCol&&p.w>34&&p.h>34){ctx.setLineDash([11,8]);ctx.lineWidth=3;ctx.strokeStyle=stitchCol;ctx.beginPath();ctx.roundRect(p.x+11,p.y+11,p.w-22,p.h-22,Math.max(2,r-11));ctx.stroke();ctx.setLineDash([])}
+  ctx.restore();
+}
+function drawHand(ctx,rec,cx,wy,armBottom,pose){
+  const skin=rec.skin,dark=shade(skin,-.18),st=shade(skin,-.32);
+  const {palm,fingers,thumb}=handPieces(pose);
+  ctx.save();ctx.translate(cx,wy);
+  const arm={x:-112,y:-10,w:224,h:armBottom-wy+40,r:0};
+  // shadow pass for the whole silhouette
+  ctx.save();ctx.shadowColor='rgba(60,30,10,.25)';ctx.shadowBlur=18;ctx.shadowOffsetY=8;ctx.fillStyle=skin;ctx.beginPath();
+  for(const p of[arm,palm,...fingers])ctx.roundRect(p.x,p.y,p.w,p.h,p.r??Math.min(p.w,p.h)/2);ctx.fill();ctx.restore();
+  for(const f of fingers)piece(ctx,f,skin,st);
+  piece(ctx,palm,skin,null);
+  piece(ctx,arm,skin,null);
+  // stitch along arm sides and palm outline
+  ctx.setLineDash([11,8]);ctx.lineWidth=3;ctx.strokeStyle=st;
+  ctx.beginPath();ctx.moveTo(-100,0);ctx.lineTo(-100,armBottom-wy+40);ctx.moveTo(100,0);ctx.lineTo(100,armBottom-wy+40);ctx.stroke();
+  ctx.beginPath();ctx.roundRect(palm.x+11,palm.y+11,palm.w-22,palm.h-22,palm.r-11);ctx.stroke();ctx.setLineDash([]);
+  // folded-finger creases
+  ctx.strokeStyle=dark;ctx.lineWidth=4;ctx.lineCap='round';
+  for(const f of fingers)if(!f.up){ctx.beginPath();ctx.moveTo(f.x+8,f.y+44);ctx.quadraticCurveTo(f.x+f.w/2,f.y+54,f.x+f.w-8,f.y+44);ctx.stroke()}
+  piece(ctx,thumb,shade(skin,-.04),st,true);
+  ctx.restore();
+}
+
+/* ---------- cut-out title letters ---------- */
+function titleLines(t){
+  t=(t||'').trim()||'공연/이름';
+  if(t.includes('/'))return t.split('/').map(s=>s.trim()).filter(Boolean).slice(0,5);
+  const out=[];for(const w of t.split(/\s+/)){const n=/[가-힣]/.test(w)?2:3;if(w.length<=n+1)out.push(w);else for(let i=0;i<w.length;i+=n)out.push(w.slice(i,i+n))}
+  return out.slice(0,5);
+}
+// embroidered patch letter: gold edge, dark gap, thread-textured fill, stitch line sewn inside
+const F_STITCH='"Jua","Black Han Sans","Apple SD Gothic Neo",sans-serif';
+function stitchedGlyph(ctx,ch,cw,s,color){
+  const m=ctx.getTransform(),k=Math.max(1,Math.hypot(m.a,m.b)),pad=s*.22,base=s*1.05;
+  const c=document.createElement('canvas');c.width=Math.ceil((cw+pad*2)*k);c.height=Math.ceil(s*1.45*k);
+  const g=c.getContext('2d');g.scale(k,k);g.font=ctx.font;g.textBaseline='alphabetic';g.textAlign='left';g.lineJoin='round';g.lineCap='round';
+  const edge=lum(color)<.55?'#e8b86a':shade(color,-.5),gap=shade(color,-.45);
+  g.lineWidth=s*.12;g.strokeStyle=edge;g.strokeText(ch,pad,base);
+  g.lineWidth=s*.065;g.strokeStyle=gap;g.strokeText(ch,pad,base);
+  g.setLineDash([s*.03,s*.025]);g.lineCap='butt';g.lineWidth=s*.012;g.strokeStyle=shade(edge,-.35);
+  g.save();g.lineWidth=s*.105;g.globalAlpha=.25;g.strokeText(ch,pad,base);g.restore();g.setLineDash([]);
+  const f=document.createElement('canvas');f.width=c.width;f.height=c.height;const h=f.getContext('2d');h.scale(k,k);
+  h.font=ctx.font;h.textBaseline='alphabetic';h.textAlign='left';h.lineJoin='round';
+  h.fillStyle=color;h.fillText(ch,pad,base);
+  h.globalCompositeOperation='source-atop';
+  h.lineWidth=Math.max(1,s*.008);
+  for(let x=-s*1.5;x<cw+pad*2+s;x+=s*.022){h.strokeStyle=(Math.round(x/(s*.022))%2)?'rgba(255,255,255,.10)':'rgba(0,0,0,.12)';h.beginPath();h.moveTo(x,0);h.lineTo(x+s*1.4,s*1.45);h.stroke()}
+  const inset=s*.035,sw=Math.max(2,s*.022);
+  h.setLineDash([s*.05,s*.035]);h.lineCap='butt';h.lineWidth=2*(inset+sw);h.strokeStyle=shade(color,.7);h.strokeText(ch,pad,base);
+  h.setLineDash([]);h.lineWidth=2*inset;h.strokeStyle=color;h.strokeText(ch,pad,base);
+  g.drawImage(f,0,0,c.width/k,c.height/k);
+  ctx.save();ctx.shadowColor='rgba(40,25,10,.28)';ctx.shadowBlur=0;ctx.shadowOffsetX=3;ctx.shadowOffsetY=4;
+  ctx.drawImage(c,-cw/2-pad,-base,c.width/k,c.height/k);ctx.restore();
+}
+function drawLetters(ctx,rec,r,x0,y0,maxW,maxH){
+  const lines=titleLines(rec.title);
+  let s=Math.min(200,maxH/lines.length/0.95);
+  ctx.font=`${s}px ${F_STITCH}`;
+  const widest=Math.max(...lines.map(l=>ctx.measureText(l).width));
+  if(widest>maxW)s*=maxW/widest;
+  ctx.font=`${s}px ${F_STITCH}`;ctx.textBaseline='alphabetic';ctx.textAlign='left';
+  const st=shade(rec.letter,.45);let y=y0+s*.85;
+  for(const line of lines){
+    let x=x0;
+    for(const ch of line){
+      const cw=ctx.measureText(ch).width;
+      ctx.save();ctx.translate(x+cw/2,y+(r()-.5)*s*.08);ctx.rotate((r()-.5)*.14);
+      stitchedGlyph(ctx,ch,cw,s,rec.letter);
+      ctx.restore();x+=cw*1.02;
+    }
+    y+=s*.95;
+  }
+  return y-s*.95+s*.25;
+}
+function drawFlag(ctx,rec,x,y){
+  const w=330,h=104,txt=(rec.flag||'').trim();if(!txt)return;
+  ctx.save();ctx.translate(x,y);ctx.rotate(-.03);
+  ctx.strokeStyle='#d8c9a8';ctx.lineWidth=12;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(14,h+120);ctx.stroke();
+  ctx.setLineDash([9,7]);ctx.strokeStyle='#b9a77f';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(14,6);ctx.lineTo(14,h+114);ctx.stroke();ctx.setLineDash([]);
+  ctx.shadowColor='rgba(60,40,20,.22)';ctx.shadowBlur=8;ctx.shadowOffsetY=4;ctx.fillStyle=rec.flagColor;
+  ctx.beginPath();ctx.moveTo(20,0);ctx.lineTo(w,8);ctx.lineTo(w-34,h/2+4);ctx.lineTo(w,h+8);ctx.lineTo(20,h);ctx.closePath();ctx.fill();ctx.shadowColor='transparent';
+  ctx.setLineDash([10,7]);ctx.lineWidth=2.5;ctx.strokeStyle=shade(rec.flagColor,.5);
+  ctx.beginPath();ctx.moveTo(32,12);ctx.lineTo(w-22,18);ctx.lineTo(w-52,h/2+4);ctx.lineTo(w-22,h-2);ctx.lineTo(32,h-12);ctx.closePath();ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#1f2a5c';ctx.textAlign='left';ctx.textBaseline='middle';
+  fitFont(ctx,txt,w-110,44,F_STITCH);ctx.fillText(txt,48,h/2+4);
+  ctx.restore();
+}
+
+/* ---------- full spread ---------- */
+function pageFill(rec){return rec.paper==='kraft'?'#d9c19c':rec.paper==='grid'?'#fbfbf7':'#f7f0de'}
+function render(ctx,rec,t=1){
+  CUR_POSTER=posterImg(rec);
+  const r=rng(rec.id);
+  // desk cloth
+  ctx.fillStyle='#e7e4df';ctx.fillRect(0,0,W,H);
+  for(let i=0;i<900;i++){ctx.fillStyle=`rgba(90,80,70,${r()*.07})`;ctx.fillRect(r()*W,r()*H,3,1)}
+  const px=40,py=150,pw=1000,ph=1060,mid=W/2;
+  // bookmark ribbon
+  ctx.fillStyle='#ff6a2b';ctx.beginPath();ctx.moveTo(300,py+ph-20);ctx.lineTo(326,py+ph-20);ctx.lineTo(326,py+ph+90);ctx.lineTo(313,py+ph+76);ctx.lineTo(300,py+ph+90);ctx.closePath();ctx.fill();
+  // pages
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.22)';ctx.shadowBlur=30;ctx.shadowOffsetY=12;ctx.fillStyle=pageFill(rec);ctx.fillRect(px,py,pw,ph);ctx.restore();
+  for(let k=1;k<=4;k++){ctx.strokeStyle='rgba(0,0,0,.06)';ctx.lineWidth=1;ctx.strokeRect(px-k*2,py+k*1.5,pw+k*4,ph)}
+  ctx.save();ctx.beginPath();ctx.rect(px,py,pw,ph);ctx.clip();
+  if(rec.paper==='grid'){ctx.strokeStyle='rgba(47,107,255,.13)';ctx.lineWidth=2;for(let x=px;x<=px+pw;x+=50){ctx.beginPath();ctx.moveTo(x,py);ctx.lineTo(x,py+ph);ctx.stroke()}for(let y=py;y<=py+ph;y+=50){ctx.beginPath();ctx.moveTo(px,y);ctx.lineTo(px+pw,y);ctx.stroke()}}
+  else for(let i=0;i<1100;i++){ctx.fillStyle=`rgba(110,80,40,${r()*.09})`;ctx.fillRect(px+r()*pw,py+r()*ph,2,2)}
+  const g=ctx.createLinearGradient(mid-60,0,mid+60,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.5,'rgba(70,50,30,.2)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(mid-60,py,120,ph);
+
+  // left page: letters, flag, date
+  const r2=rng(rec.id+'L');
+  const after=drawLetters(ctx,rec,r2,px+46,py+50,mid-px-90,620);
+  drawFlag(ctx,rec,px+46,Math.min(after+30,py+ph-360));
+  ctx.fillStyle='#4a4d57';ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  fitFont(ctx,fmtDate(rec.date),400,42,F_HAND,'700');ctx.fillText(fmtDate(rec.date),px+60,py+ph-90);
+  fitFont(ctx,rec.place||'',400,36,F_HAND);ctx.fillText(rec.place||'',px+60,py+ph-44);
+
+  // right page: arm + wristbands
+  const cx=mid+250,bottom=py+ph,wy=rec.kind==='ticket'?py+770:py+560;
+  if(rec.kind==='ticket'){
+    // the ticket slides up into a gripping fist; its stub stays hidden inside the hand
+    const k=ease(t/.8),lift=(1-k)*640,tw=290,th=600;
+    let face=(rec.ticket&&rec.ticket.face)||'photo',sx=1;
+    if(FLIP_P!==null){sx=Math.max(.02,Math.abs(Math.cos(FLIP_P*Math.PI)));if(FLIP_P>.5)face=face==='info'?'photo':'info'}
+    ctx.save();ctx.translate(cx-6,wy-150+lift);ctx.rotate(-.05);ctx.scale(sx,1);ctx.translate(-tw/2,-th);
+    ctx.shadowColor='rgba(0,0,0,.28)';ctx.shadowBlur=16;ctx.shadowOffsetY=6;ctx.fillStyle=ticketPalette(rec).bg;ticketShape(ctx,tw,th);ctx.fill();ctx.shadowColor='transparent';
+    drawTicketCard(ctx,rec,face,tw,th);ctx.restore();
+    drawHand(ctx,rec,cx,wy,bottom,'fist');
+  }else{
+    const done=t>=.82;
+    drawHand(ctx,rec,cx,wy,bottom,done?rec.pose:'fist');
+    drawWrist(ctx,rec,cx,wy,t,r);
+  }
+  ctx.restore();
+}
+function ticketPalette(rec){const tk=rec.ticket||{},bg=tk.color||'#f6d05a',ink=tk.ink||(lum(bg)>.6?'#c8202e':'#ffffff');return{bg,ink,acc:tk.accent||ink}}
+// scalloped top & bottom edges with side notches, like a torn-off cinema stub
+function ticketPath(ctx,w,h){
+  const r=6.5,n=Math.max(4,Math.round(w/22)),s=w/n,nr=8;
+  ctx.beginPath();ctx.moveTo(0,0);
+  for(let i=0;i<n;i++){const c=s*(i+.5);ctx.lineTo(c-r,0);ctx.arc(c,0,r,Math.PI,0,true)}
+  ctx.lineTo(w,0);for(const ny of[h*.1,h*.9]){ctx.lineTo(w,ny-nr);ctx.arc(w,ny,nr,-Math.PI/2,Math.PI/2,true)}
+  ctx.lineTo(w,h);for(let i=n-1;i>=0;i--){const c=s*(i+.5);ctx.lineTo(c+r,h);ctx.arc(c,h,r,0,Math.PI,true)}
+  ctx.lineTo(0,h);for(const ny of[h*.9,h*.1]){ctx.lineTo(0,ny+nr);ctx.arc(0,ny,nr,Math.PI/2,-Math.PI/2,true)}
+  ctx.closePath();
+}
+function ticketShape(ctx,w,h){ctx.save();ctx.scale(w/250,h/520);ticketPath(ctx,250,520);ctx.restore()}
+function star(ctx,cx,cy,r,fill,col){ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;ctx.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}
+  ctx.closePath();ctx.lineWidth=1.4;ctx.strokeStyle=col;ctx.stroke();if(fill){ctx.fillStyle=col;ctx.fill()}ctx.fillStyle=col}
+function drawTicketCard(ctx,rec,face,w,h){
+  const tk=rec.ticket||{},tp=ticketPalette(rec),B=250,HH=520;
+  ctx.save();ctx.scale(w/B,h/HH);ticketPath(ctx,B,HH);ctx.clip();
+  const no=tk.no||('NO.'+(((rec.date||'').replace(/-/g,'').slice(4))||'0001'));
+  ctx.textBaseline='alphabetic';
+  if(face==='photo'){
+    const po=posterImg(rec)||(tk.img?getImg({id:'tk_'+rec.id,img:tk.img}):null);
+    if(po)cover(ctx,po,B,HH);
+    else{ctx.fillStyle=tp.ink;ctx.fillRect(0,0,B,HH);ctx.fillStyle=tp.bg;ctx.textAlign='center';
+      fitFont(ctx,shown(rec),200,40,F_BAND);ctx.fillText(shown(rec),B/2,230);
+      ctx.font=`700 20px ${F_HAND}`;ctx.fillText('포스터를 올리면',B/2,290);ctx.fillText('이 면에 들어가요',B/2,316)}
+    const g=ctx.createLinearGradient(0,HH-120,0,HH);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.45)');ctx.fillStyle=g;ctx.fillRect(0,HH-120,B,120);
+    ctx.fillStyle='#ffffff';ctx.font=`13px ${F_BAND}`;ctx.textAlign='left';ctx.fillText(no,16,HH-22);ctx.textAlign='right';ctx.fillText(fmtDate(rec.date),B-16,HH-22);
+  }else{
+    const ink=tp.ink,lab=`10px ${F_BAND}`,x0=12,x1=B-12;
+    ctx.fillStyle=tp.bg;ctx.fillRect(0,0,B,HH);
+    ctx.strokeStyle=ink;ctx.fillStyle=ink;ctx.lineWidth=1.6;
+    ctx.font=`11px ${F_BAND}`;ctx.textAlign='left';ctx.fillText('TICKET BOOK',14,26);ctx.textAlign='right';ctx.fillText(no,B-14,26);
+    ctx.strokeRect(x0,34,x1-x0,330);
+    const hl=y=>{ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke()};
+    ctx.font=lab;ctx.textAlign='left';ctx.fillText('공연명',x0+8,50);ctx.textAlign='right';ctx.fillText((rec.date||'').slice(0,4),x1-8,50);
+    ctx.textAlign='center';fitFont(ctx,shown(rec),x1-x0-24,40,F_BAND);ctx.fillText(shown(rec),B/2,96);
+    if(rec.flag){ctx.save();ctx.translate(B/2,114);ctx.rotate(-.06);ctx.fillStyle=tp.acc;fitFont(ctx,rec.flag,180,22,F_HAND,'700');ctx.fillText(rec.flag,0,0);ctx.restore();ctx.fillStyle=ink}
+    hl(124);
+    const row=(y,l,v)=>{ctx.textAlign='left';ctx.font=lab;ctx.fillText(l,x0+8,y);fitFont(ctx,v||'',x1-x0-72,15,F_HAND,'700');ctx.fillText(v||'',x0+60,y)};
+    row(146,'날짜',[fmtDate(rec.date),tk.time].filter(Boolean).join('  '));row(170,'장소',rec.place);row(194,'출연',tk.cast);
+    hl(206);
+    ctx.textAlign='left';ctx.font=lab;ctx.fillText('별점',x0+8,230);
+    for(let i=0;i<5;i++)star(ctx,x0+68+i*23,225,9,i<(tk.rating||0),ink);
+    ctx.font=`11px ${F_BAND}`;ctx.textAlign='right';ctx.fillText(`[ ${tk.rating||0} / 5 ]`,x1-8,230);
+    hl(244);
+    ctx.textAlign='left';ctx.font=lab;ctx.fillText('한줄평',x0+8,262);
+    ctx.font=`700 15px ${F_HAND}`;const words=(tk.review||'').split(''),lines=[''];
+    for(const ch of words){const tl=lines[lines.length-1]+ch;if(ctx.measureText(tl).width>x1-x0-18&&lines.length<2)lines.push(ch);else lines[lines.length-1]=tl}
+    lines.forEach((l,i)=>ctx.fillText(l,x0+8,284+i*20));
+    hl(318);ctx.beginPath();ctx.moveTo(x0+78,318);ctx.lineTo(x0+78,364);ctx.stroke();
+    ctx.font=lab;ctx.fillText('종류',x0+8,334);ctx.fillText('좌석',x0+86,334);
+    ctx.font=`700 15px ${F_HAND}`;ctx.fillText(tk.cat||'',x0+8,356);fitFont(ctx,tk.seat||'',x1-x0-96,15,F_HAND,'700');ctx.fillText(tk.seat||'',x0+86,356);
+    ctx.setLineDash([5,4]);hl(386);ctx.setLineDash([]);
+    ctx.font=`12px ${F_BAND}`;ctx.textAlign='left';ctx.fillText('ADMIT ONE',x0+4,410);ctx.textAlign='right';ctx.fillText((TICKET_CATS.find(c=>c[0]===tk.cat)||['',''])[1],x1-4,410);
+    const br=rng(rec.id+'bar');for(let x=x0+4;x<x1-4;){const bw=1+Math.floor(br()*4);ctx.fillRect(x,422,bw,56);x+=bw+2+Math.floor(br()*3)}
+    ctx.font=`11px ${F_BAND}`;ctx.textAlign='left';ctx.fillText(shown(rec).toUpperCase().slice(0,14),x0+4,500);ctx.textAlign='right';ctx.fillText('TICKET BOOK',x1-4,500);
+  }
+  ctx.restore();ctx.textAlign='left';
+}
+function renderTicketSheet(ctx,rec){
+  const tp=ticketPalette(rec),bg=lum(tp.ink)>.8?shade(tp.bg,-.4):tp.ink;CUR_POSTER=posterImg(rec);
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=lum(bg)>.6?'#17181c':tp.bg;ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.font=`72px ${F_BAND}`;ctx.fillText('MY TICKET',90,170);fitFont(ctx,shown(rec),900,56,F_BAND);ctx.fillText(shown(rec),90,240);
+  for(const[x,face]of[[90,'photo'],[560,'info']]){ctx.save();ctx.translate(x,320);
+    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;ctx.fillStyle=tp.bg;ticketShape(ctx,430,890);ctx.fill();ctx.shadowColor='transparent';
+    drawTicketCard(ctx,rec,face,430,890);ctx.restore()}
+}
+function drawTicket(ctx,rec,w,h){
+  const tk=rec.ticket||{},col=tk.color||'#2f6bff',light=lum(col)>.62,ink=light?'#17181c':'#ffffff';
+  const cat=(TICKET_CATS.find(c=>c[0]===tk.cat)||TICKET_CATS[0])[1],stubY=h*.72;
+  ctx.save();ctx.beginPath();ctx.roundRect(0,0,w,h,16);ctx.clip();
+  const img=tk.img?getImg({id:'tk_'+rec.id,img:tk.img}):null;
+  const po=!img&&tk.style==='poster'?posterImg(rec):null;
+  if(img)cover(ctx,img,w,h);
+  else if(po){
+    const acc=tk.accent||'#ffffff';ctx.fillStyle=col;ctx.fillRect(0,0,w,h);
+    ctx.save();ctx.beginPath();ctx.rect(0,0,w,180);ctx.clip();cover(ctx,po,w,180);ctx.restore();
+    const fade=ctx.createLinearGradient(0,120,0,182);fade.addColorStop(0,'rgba(0,0,0,0)');fade.addColorStop(1,col);ctx.fillStyle=fade;ctx.fillRect(0,120,w,62);
+    ctx.fillStyle=acc;ctx.fillRect(18,190,w-36,4);
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle=acc;ctx.font=`20px ${F_BAND}`;ctx.fillText(cat,20,220);
+    ctx.fillStyle=ink;const t1=shown(rec);fitFont(ctx,t1,w-40,44,F_BAND);ctx.fillText(t1,20,264);
+    ctx.font=`700 26px ${F_HAND}`;ctx.fillText([fmtDate(rec.date),rec.place].filter(Boolean).join(' · '),20,298);
+    if(tk.seat){fitFont(ctx,tk.seat,w-40,24,F_HAND);ctx.globalAlpha=.85;ctx.fillText(tk.seat,20,326);ctx.globalAlpha=1}
+    ctx.font=`22px ${F_BAND}`;ctx.fillText(tk.no||'ADMIT ONE',22,stubY+44);
+    const br=rng(rec.id+'bar');for(let x=22;x<w-22;){const bw=2+Math.floor(br()*5);ctx.fillRect(x,stubY+60,bw,h-stubY-82);x+=bw+3+Math.floor(br()*4)}
+  }
+  else{
+    ctx.fillStyle=col;ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle=light?'rgba(0,0,0,.06)':'rgba(255,255,255,.08)';ctx.lineWidth=10;
+    for(let x=-h;x<w;x+=34){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+h,h);ctx.stroke()}
+    ctx.fillStyle=ink;ctx.textAlign='left';ctx.textBaseline='alphabetic';
+    ctx.globalAlpha=.8;ctx.font=`26px ${F_BAND}`;ctx.fillText(cat,22,46);ctx.globalAlpha=1;
+    ctx.fillRect(22,60,w-44,3);
+    let y=120;for(const line of titleLines(rec.title).slice(0,3)){fitFont(ctx,line,w-44,62,F_BAND);ctx.fillText(line,22,y);y+=parseInt(ctx.font)*1.02}
+    ctx.font=`700 30px ${F_HAND}`;ctx.fillText(fmtDate(rec.date),22,stubY-124);
+    fitFont(ctx,rec.place||'',w-44,28,F_HAND);ctx.fillText(rec.place||'',22,stubY-90);
+    if(tk.seat){fitFont(ctx,tk.seat,w-44,26,F_HAND,'700');ctx.globalAlpha=.85;ctx.fillText(tk.seat,22,stubY-56);ctx.globalAlpha=1}
+    ctx.font=`22px ${F_BAND}`;ctx.fillText(tk.no||'ADMIT ONE',22,stubY+44);
+    const br=rng(rec.id+'bar');for(let x=22;x<w-22;){const bw=2+Math.floor(br()*5);ctx.fillRect(x,stubY+60,bw,h-stubY-82);x+=bw+3+Math.floor(br()*4)}
+  }
+  ctx.restore();
+  ctx.fillStyle=pageFill(rec);for(const x of[0,w]){ctx.beginPath();ctx.arc(x,stubY,15,0,7);ctx.fill()}
+  ctx.setLineDash([8,7]);ctx.strokeStyle=light||img?'rgba(0,0,0,.35)':'rgba(255,255,255,.6)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(20,stubY);ctx.lineTo(w-20,stubY);ctx.stroke();ctx.setLineDash([]);
+}
+function drawWrist(ctx,rec,cx,wy,t,r){
+  const bands=rec.bands.length?rec.bands:[{id:'empty',color:'#c9ccd4',color2:'#ffffff',pattern:'stripe',text:'팔찌 추가'}];
+  bands.slice(0,3).forEach((b,i)=>{
+    const local=ease((t-i*.12)/.6),slide=(1-local)*700;
+    const bw=290,bh=104,by=wy+26+i*128;
+    ctx.save();ctx.translate(cx-bw/2+slide,by);ctx.rotate(-.025+(r()-.5)*.02);
+    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=10;ctx.shadowOffsetY=5;ctx.fillStyle=b.color;ctx.fillRect(0,0,bw,bh);ctx.shadowColor='transparent';
+    bandFace(ctx,b,bw,bh,-14);
+    const eg=ctx.createLinearGradient(0,0,bw,0);eg.addColorStop(0,'rgba(0,0,0,.28)');eg.addColorStop(.12,'rgba(0,0,0,0)');eg.addColorStop(.88,'rgba(0,0,0,0)');eg.addColorStop(1,'rgba(0,0,0,.28)');
+    ctx.fillStyle=eg;ctx.fillRect(0,0,bw,bh);
+    ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(0,4,bw,6);
+    ctx.restore();
+  });
+}
+function toCanvas(rec,scale){const c=document.createElement('canvas');c.width=W*scale;c.height=H*scale;const x=c.getContext('2d');x.scale(scale,scale);render(x,rec);return c}
+
+/* ---------- UI ---------- */
+const $app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,1800)}
+const shown=r=>r.name||(r.title||'').replace(/\//g,'')||'제목 없는 공연';
+
+/* ---------- notebook spreads (cover / records / last page) ---------- */
+const pageCache={};
+function clearPages(){for(const k in pageCache)delete pageCache[k]}
+function ordered(){return[...records].sort((a,b)=>(a.date||'').localeCompare(b.date||''))}
+function spreads(){return[{kind:'cover'},...ordered().map(rec=>({kind:'rec',rec})),{kind:'end'}]}
+function spreadBase(ctx,seed,paper){
+  const r=rng(seed);
+  ctx.fillStyle='#e7e4df';ctx.fillRect(0,0,W,H);
+  for(let i=0;i<900;i++){ctx.fillStyle=`rgba(90,80,70,${r()*.07})`;ctx.fillRect(r()*W,r()*H,3,1)}
+  const px=40,py=150,pw=1000,ph=1060,mid=W/2;
+  ctx.fillStyle='#ff6a2b';ctx.beginPath();ctx.moveTo(300,py+ph-20);ctx.lineTo(326,py+ph-20);ctx.lineTo(326,py+ph+90);ctx.lineTo(313,py+ph+76);ctx.lineTo(300,py+ph+90);ctx.closePath();ctx.fill();
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.22)';ctx.shadowBlur=30;ctx.shadowOffsetY=12;ctx.fillStyle=pageFill({paper});ctx.fillRect(px,py,pw,ph);ctx.restore();
+  for(let k=1;k<=4;k++){ctx.strokeStyle='rgba(0,0,0,.06)';ctx.lineWidth=1;ctx.strokeRect(px-k*2,py+k*1.5,pw+k*4,ph)}
+  ctx.save();ctx.beginPath();ctx.rect(px,py,pw,ph);ctx.clip();
+  for(let i=0;i<1100;i++){ctx.fillStyle=`rgba(110,80,40,${r()*.09})`;ctx.fillRect(px+r()*pw,py+r()*ph,2,2)}
+  return{px,py,pw,ph,mid,r};
+}
+function gutter(ctx,py,ph){const mid=W/2,g=ctx.createLinearGradient(mid-60,0,mid+60,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.5,'rgba(70,50,30,.22)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(mid-60,py,120,ph)}
+function renderCover(ctx){
+  const recs=ordered(),nb=recs.reduce((a,r)=>a+(r.kind==='ticket'?0:r.bands.length),0),nt=recs.filter(r=>r.kind==='ticket').length;
+  const{px,py,pw,ph,mid,r}=spreadBase(ctx,'cover','cream');
+  ctx.fillStyle='#cfae7f';ctx.fillRect(px,py,mid-px,ph);
+  for(let i=0;i<700;i++){ctx.fillStyle=`rgba(80,50,20,${r()*.12})`;ctx.fillRect(px+r()*(mid-px),py+r()*ph,2,2)}
+  drawLetters(ctx,{title:'TICKET/BOOK',letter:'#ff9fb8',id:'c'},rng('cv'),px+60,py+90,mid-px-130,400);
+  ctx.save();ctx.translate(px+235,py+730);ctx.rotate(-.04);
+  ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;ctx.fillStyle='#fffdf7';ctx.fillRect(-180,-100,360,200);ctx.shadowColor='transparent';
+  ctx.strokeStyle='rgba(255,79,121,.3)';ctx.lineWidth=2;for(const y of[-20,40]){ctx.beginPath();ctx.moveTo(-160,y);ctx.lineTo(160,y);ctx.stroke()}
+  ctx.fillStyle='#1b1d22';ctx.textAlign='center';ctx.font=`700 44px ${F_HAND}`;ctx.fillText('팔찌·티켓 기록장',0,-34);
+  ctx.font=`36px ${F_HAND}`;ctx.fillStyle='#4a4d57';ctx.fillText(`팔찌 ${nb}개 · 티켓 ${nt}장`,0,28);
+  ctx.fillStyle='rgba(255,214,120,.75)';ctx.save();ctx.translate(0,-100);ctx.rotate(.05);ctx.fillRect(-70,-18,140,36);ctx.restore();
+  ctx.restore();
+  ctx.textAlign='left';ctx.fillStyle='#2a2c33';ctx.font=`700 66px ${F_HAND}`;ctx.fillText('목차',mid+70,py+130);
+  ctx.setLineDash([12,8]);ctx.strokeStyle='#ff9fb8';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(mid+70,py+156);ctx.lineTo(px+pw-60,py+156);ctx.stroke();ctx.setLineDash([]);
+  const show=recs.slice(0,12);
+  show.forEach((rc,i)=>{const y=py+230+i*64,[,m,d]=(rc.date||'--').split('-');
+    ctx.fillStyle='#8a8d96';ctx.font=`700 34px ${F_HAND}`;ctx.textAlign='left';ctx.fillText(m?`${+m}.${+d}`:'',mid+70,y);
+    ctx.fillStyle='#2a2c33';fitFont(ctx,shown(rc),250,36,F_HAND);ctx.fillText(shown(rc),mid+170,y);
+    ctx.fillStyle='#8a8d96';ctx.font=`34px ${F_HAND}`;ctx.textAlign='right';ctx.fillText(String(i+1),px+pw-60,y)});
+  ctx.textAlign='left';
+  if(!recs.length){ctx.fillStyle='#8a8d96';ctx.font=`38px ${F_HAND}`;ctx.fillText('아직 채운 페이지가 없어요',mid+70,py+240)}
+  if(recs.length>12){ctx.fillStyle='#8a8d96';ctx.font=`34px ${F_HAND}`;ctx.fillText(`외 ${recs.length-12}곳`,mid+170,py+230+12*64)}
+  gutter(ctx,py,ph);ctx.restore();
+}
+function renderEnd(ctx){
+  const{px,py,pw,ph,mid}=spreadBase(ctx,'end','cream');
+  ctx.fillStyle='#9a9ca4';ctx.textAlign='center';ctx.font=`700 52px ${F_HAND}`;
+  ctx.fillText('다음 페스티벌을',(px+mid)/2,py+ph/2-30);ctx.fillText('기다리는 중…',(px+mid)/2,py+ph/2+40);
+  const bx=mid+80,by=py+260,bw=pw/2-160,bh=520;
+  ctx.setLineDash([16,12]);ctx.strokeStyle='#b8bac2';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,30);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#ff4f79';ctx.font=`700 150px ${F_HAND}`;ctx.fillText('+',bx+bw/2,by+bh/2+20);
+  ctx.fillStyle='#4a4d57';ctx.font=`700 46px ${F_HAND}`;ctx.fillText('새 기록 채우기',bx+bw/2,by+bh/2+110);
+  ctx.textAlign='left';gutter(ctx,py,ph);ctx.restore();
+}
+function spreadURL(s){
+  const key=s.kind==='rec'?s.rec.id:'__'+s.kind;
+  if(pageCache[key])return pageCache[key];
+  const sc=Math.min(1.5,Math.max(.8,Math.min(innerWidth,440)*(window.devicePixelRatio||1)/W)),c=document.createElement('canvas');c.width=W*sc;c.height=H*sc;const x=c.getContext('2d');x.scale(sc,sc);
+  if(s.kind==='rec'){s.rec.bands.forEach(getImg);render(x,s.rec)}else if(s.kind==='cover')renderCover(x);else renderEnd(x);
+  return pageCache[key]=c.toDataURL('image/jpeg',.93);
+}
+
+let homeMode=(()=>{try{return localStorage.getItem('bandlog.mode')||'book'}catch(e){return'book'}})();
+let pageIdx=0,busy=false,crowdRaf=0,crowdHits=[];
+const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function home(opts={}){
+  view='home';cancelAnimationFrame(crowdRaf);
+  const S=spreads();
+  if(opts.focus){const i=S.findIndex(s=>s.rec&&s.rec.id===opts.focus);if(i>=0)pageIdx=i}
+  pageIdx=Math.max(0,Math.min(pageIdx,S.length-1));
+  $app.innerHTML=`
+  <header><div class="brand">TICKET BOOK<small>팔찌·티켓 다이어리</small></div><div class="head-actions"><span id="acct"></span><button class="btn primary" id="new" style="padding:9px 14px">+ 새 기록</button></div></header>
+  <div id="cloudNote"></div>
+  <div class="tabs" role="group" aria-label="보기 방식">
+    <button class="chip" data-m="book" aria-pressed="${homeMode==='book'}">공책으로 넘겨보기</button>
+    <button class="chip" data-m="crowd" aria-pressed="${homeMode==='crowd'}">다 같이 보기</button></div>
+  <div id="stage"></div>`;
+  const bar=document.getElementById('bar');if(bar)bar.remove();
+  $app.querySelector('#new').onclick=()=>edit(null);
+  renderAccount();
+  $app.querySelectorAll('.tabs .chip').forEach(b=>b.onclick=()=>{homeMode=b.dataset.m;try{localStorage.setItem('bandlog.mode',homeMode)}catch(e){}
+    $app.querySelectorAll('.tabs .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));mode()});
+  mode();
+}
+function mode(){cancelAnimationFrame(crowdRaf);homeMode==='crowd'?crowdUI():bookUI()}
+
+function bookUI(){
+  const st=document.getElementById('stage');
+  st.innerHTML=`<div class="book" id="book" tabindex="0" role="button" aria-label="기록 공책. 좌우로 넘기고, 누르면 그 페이지를 열어요"><div class="half l" id="hl"></div><div class="half r" id="hr"></div></div>
+  <div class="book-nav"><button class="btn" id="prev">‹ 이전 장</button><span id="pg"></span><button class="btn" id="next">다음 장 ›</button></div>
+  <p class="stage-hint">밀어서 넘기고, 페이지를 누르면 수정할 수 있어요</p>`;
+  const book=st.querySelector('#book');
+  st.querySelector('#prev').onclick=()=>flip(-1);st.querySelector('#next').onclick=()=>flip(1);
+  let sx=null,sy=0;
+  book.onpointerdown=e=>{sx=e.clientX;sy=e.clientY};
+  book.onpointerup=e=>{if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))flip(dx<0?1:-1);else if(Math.abs(dx)<8&&Math.abs(dy)<8)openPage()};
+  book.onkeydown=e=>{if(e.key==='ArrowRight')flip(1);if(e.key==='ArrowLeft')flip(-1);if(e.key==='Enter'||e.key===' '){e.preventDefault();openPage()}};
+  showPage();
+}
+function setHalves(l,r){const hl=document.getElementById('hl'),hr=document.getElementById('hr');if(!hl)return;hl.style.backgroundImage=`url(${l})`;hr.style.backgroundImage=`url(${r})`}
+function showPage(){
+  const S=spreads(),s=S[pageIdx],u=spreadURL(s);setHalves(u,u);
+  const n=S.length-2;
+  document.getElementById('pg').textContent=s.kind==='cover'?'표지 · 목차':s.kind==='end'?'마지막 장':`${pageIdx} / ${n} · ${shown(s.rec)}`;
+  document.getElementById('prev').disabled=pageIdx===0;document.getElementById('next').disabled=pageIdx===S.length-1;
+  // warm the neighbours so the flip has its images ready
+  setTimeout(()=>{if(S[pageIdx+1])spreadURL(S[pageIdx+1]);if(S[pageIdx-1])spreadURL(S[pageIdx-1])},60);
+}
+function openPage(){const s=spreads()[pageIdx];if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else flip(1)}
+function flip(dir){
+  if(busy)return;const S=spreads(),ni=pageIdx+dir;if(ni<0||ni>=S.length)return;
+  if(reduced()){pageIdx=ni;showPage();return}
+  const cur=spreadURL(S[pageIdx]),nx=spreadURL(S[ni]),book=document.getElementById('book');busy=true;
+  const leaf=document.createElement('div');leaf.className='leaf '+(dir>0?'fwd':'bwd');
+  const f=document.createElement('div'),b=document.createElement('div');f.className='face f';b.className='face b';
+  f.style.backgroundImage=`url(${cur})`;b.style.backgroundImage=`url(${nx})`;
+  if(dir>0){setHalves(cur,nx);f.style.backgroundPosition='right center';b.style.backgroundPosition='left center'}
+  else{setHalves(nx,cur);f.style.backgroundPosition='left center';b.style.backgroundPosition='right center'}
+  leaf.append(f,b);leaf.style.transform='rotateY(0deg)';book.append(leaf);leaf.getBoundingClientRect();
+  leaf.style.transform=`rotateY(${dir>0?-180:180}deg)`;
+  let done=false;const end=()=>{if(done)return;done=true;leaf.remove();pageIdx=ni;busy=false;if(document.getElementById('pg'))showPage()};
+  leaf.addEventListener('transitionend',end,{once:true});setTimeout(end,1100);
+}
+
+/* ---------- crowd: every saved record raises its hand ---------- */
+/* bird's-eye circle dance on a sunny lawn: every record is one dancer holding hands */
+let grassCanvas=null;
+function grass(){
+  if(grassCanvas)return grassCanvas;
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),r=rng('grass');
+  const bg=g.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#62b13f');bg.addColorStop(.5,'#4f9c35');bg.addColorStop(1,'#3e872c');g.fillStyle=bg;g.fillRect(0,0,W,H);
+  for(let i=0;i<8;i++){const x=r()*W,y=r()*H,rad=160+r()*280,rg=g.createRadialGradient(x,y,0,x,y,rad);rg.addColorStop(0,'rgba(222,236,92,.5)');rg.addColorStop(1,'rgba(222,236,92,0)');g.fillStyle=rg;g.fillRect(x-rad,y-rad,rad*2,rad*2)}
+  for(let i=0;i<5;i++){const x=r()*W,y=r()*H,rad=120+r()*200,rg=g.createRadialGradient(x,y,0,x,y,rad);rg.addColorStop(0,'rgba(18,58,20,.32)');rg.addColorStop(1,'rgba(18,58,20,0)');g.fillStyle=rg;g.fillRect(x-rad,y-rad,rad*2,rad*2)}
+  const blades=['#7cc04a','#3d7f2a','#a8d85c','#2f6b22','#8fcf55','#c9e46a'];
+  for(let i=0;i<11000;i++){const x=r()*W,y=r()*H,l=5+r()*12,a=r()*Math.PI*2;g.strokeStyle=blades[i%6];g.globalAlpha=.45+r()*.5;g.lineWidth=1.2+r()*1.6;
+    g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke()}
+  g.globalAlpha=1;
+  for(let i=0;i<46;i++){const x=r()*W,y=r()*H;g.fillStyle='#ffffff';for(let k=0;k<5;k++){g.beginPath();g.arc(x+Math.cos(k*1.26)*4,y+Math.sin(k*1.26)*4,3,0,7);g.fill()}g.fillStyle='#ffd23f';g.beginPath();g.arc(x,y,2.4,0,7);g.fill()}
+  return grassCanvas=c;
+}
+function accessory(rec,side){
+  if(!rec)return null;
+  if(rec.kind==='ticket')return side===0?{ticketColor:(rec.ticket&&rec.ticket.color)||'#2f6bff'}:null;
+  return side===0?rec.bands[0]:(rec.bands[1]||rec.bands[0]);
+}
+function drawRing(ctx,slots,cx,cy,R,a0,t,alpha,detail){
+  const N=slots.length;
+  const pos=slots.map((s,k)=>{const a=a0+k*2*Math.PI/N,rr=R+Math.sin(t*3+s.phase)*12;return{x:cx+Math.cos(a)*rr,y:cy+Math.sin(a)*rr,a}});
+  ctx.save();ctx.globalAlpha=alpha;
+  if(detail){ctx.fillStyle='rgba(10,40,10,.22)';pos.forEach(p=>{ctx.beginPath();ctx.ellipse(p.x+16,p.y+20,70,52,p.a,0,7);ctx.fill()})}
+  const arm=(p,to,s,b)=>{CUR_POSTER=posterImg(s.rec);
+    const dx=to.x-p.x,dy=to.y-p.y,d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d,sh={x:p.x+ux*30,y:p.y+uy*30};
+    ctx.strokeStyle=s.skin;ctx.lineWidth=23*DS;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sh.x,sh.y);ctx.lineTo(to.x,to.y);ctx.stroke();
+    if(detail&&b&&b.ticketColor){ctx.save();ctx.translate(sh.x+(to.x-sh.x)*.8,sh.y+(to.y-sh.y)*.8);ctx.rotate(Math.atan2(uy,ux)-.5);
+      ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=5;ctx.fillStyle=b.ticketColor;ctx.beginPath();ctx.roundRect(-22,-34,44,68,6);ctx.fill();ctx.shadowColor='transparent';
+      const ink=lum(b.ticketColor)>.62?'rgba(0,0,0,.7)':'rgba(255,255,255,.88)';ctx.fillStyle=ink;ctx.fillRect(-14,-22,28,5);ctx.fillRect(-14,-12,20,4);
+      ctx.setLineDash([4,4]);ctx.strokeStyle=ink;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,16);ctx.lineTo(22,16);ctx.stroke();ctx.setLineDash([]);ctx.restore()}
+    else if(detail&&b){const wx=sh.x+(to.x-sh.x)*.74,wy=sh.y+(to.y-sh.y)*.74;
+      ctx.save();ctx.translate(wx,wy);ctx.rotate(Math.atan2(uy,ux)+Math.PI/2);ctx.translate(-26,-15);
+      ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=4;ctx.fillStyle=b.color;ctx.fillRect(0,0,52,30);ctx.shadowColor='transparent';bandFace(ctx,b,52,30,0);ctx.restore()}
+  };
+  if(N===1){const p=pos[0],tx=-Math.sin(p.a),ty=Math.cos(p.a),a=slots[0];
+    for(const sg of[1,-1]){const h={x:p.x+tx*sg*150,y:p.y+ty*sg*150};arm(p,h,a,accessory(a.rec,sg>0?0:1));ctx.fillStyle=shade(a.skin,-.06);ctx.beginPath();ctx.arc(h.x,h.y,17,0,7);ctx.fill()}}
+  for(let k=0;k<(N>1?N:0);k++){const p=pos[k],q=pos[(k+1)%N],m={x:(p.x+q.x)/2,y:(p.y+q.y)/2},a=slots[k],b=slots[(k+1)%N];
+    if(N===2){const dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy)||1,sg=k?-1:1;m.x+=-dy/d*80*sg;m.y+=dx/d*80*sg}
+    arm(p,m,a,accessory(a.rec,0));arm(q,m,b,accessory(b.rec,1));
+    ctx.fillStyle=shade(a.skin,-.06);ctx.beginPath();ctx.arc(m.x,m.y,17,0,7);ctx.fill()}
+  pos.forEach((p,k)=>{const s=slots[k];
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a+Math.PI/2);ctx.scale(DS,DS);if(detail&&s.rec){ctx.setLineDash([8,7]);ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-6,70,0,7);ctx.stroke();ctx.setLineDash([])} // local +x = direction of travel, -y = outward
+    ctx.fillStyle='#f4f4f2';for(const fx of[-16,16]){ctx.beginPath();ctx.ellipse(fx-10,-50,10,16,-.2,0,7);ctx.fill()}
+    if(s.skirt){ctx.fillStyle=shade(s.shirt,.28);ctx.beginPath();ctx.ellipse(-8,-18,72,56,0,0,7);ctx.fill()}
+    ctx.fillStyle=s.shirt;ctx.beginPath();ctx.ellipse(0,0,46,30,0,0,7);ctx.fill();
+    ctx.fillStyle=s.hair;ctx.beginPath();ctx.ellipse(-36,4,20,9,.1,0,7);ctx.fill();
+    ctx.beginPath();ctx.arc(0,4,27,0,7);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,4,18,-2.4,-1.2);ctx.stroke();
+    ctx.restore();
+    if(detail&&s.rec)crowdHits.push({id:s.rec.id,x0:p.x-85,x1:p.x+85,y0:p.y-85,y1:p.y+85});
+  });
+  ctx.restore();
+}
+function renderCrowd(ctx,recs,time){
+  const moving=reduced()?0:1;time*=moving;crowdHits=[];
+  ctx.drawImage(grass(),0,0);
+  const n=recs.length,N=n,R=N<2?0:Math.min(470,(N===2?190:170)/Math.sin(Math.PI/N)),cx=W/2,cy=H/2-30;DS=N>12?1.3*12/N:1.3;
+  const slots=[...Array(N)].map((_,k)=>({k,rec:null}));
+  if(n)recs.slice(0,N).forEach((rec,i)=>{slots[Math.floor(i*N/Math.min(n,N))].rec=rec});
+  const gen=rng('dancers'),shirts=['#ffd23f','#ff4f79','#7fb6ff','#c7b5ff','#ffffff','#ff8a3d','#22c08a'],hairs=['#2a1d17','#4a3326','#14100e','#7a5230'];
+  slots.forEach(s=>{s.shirt=s.rec?(s.rec.kind==='ticket'?(s.rec.ticket?.color||'#2f6bff'):(s.rec.bands[0]?.color||'#ff4f79')):shirts[s.k%7];s.skin=s.rec?s.rec.skin:SKINS[(s.k*3)%SKINS.length];
+    s.hair=hairs[Math.floor(gen()*4)];s.skirt=gen()<.55;s.phase=gen()*6});
+  const spin=.32;
+  for(const[dt,al]of[[.6,.1],[.45,.14],[.3,.2],[.15,.28]])drawRing(ctx,slots,cx,cy,R,(time-dt)*spin,time-dt,al,false);
+  drawRing(ctx,slots,cx,cy,R,time*spin,time,1,true);
+  // sunlight
+  const sun=ctx.createRadialGradient(W*.85,0,0,W*.85,0,900);sun.addColorStop(0,'rgba(255,240,170,.35)');sun.addColorStop(1,'rgba(255,240,170,0)');ctx.fillStyle=sun;ctx.fillRect(0,0,W,H);
+  // paper tag
+  ctx.save();ctx.translate(W-270,H-140);ctx.rotate(-.05);
+  ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=14;ctx.shadowOffsetY=6;ctx.fillStyle='#fffdf7';ctx.fillRect(-210,-80,420,160);ctx.shadowColor='transparent';
+  ctx.fillStyle='rgba(255,214,120,.8)';ctx.save();ctx.translate(-150,-80);ctx.rotate(-.4);ctx.fillRect(-50,-16,100,32);ctx.restore();
+  ctx.fillStyle='#1b1d22';ctx.textAlign='center';fitFont(ctx,'TICKET BOOK FEST',380,54,F_HAND,'700');ctx.fillText('TICKET BOOK FEST',0,-8);
+  ctx.fillStyle='#4a4d57';fitFont(ctx,n?`다녀온 공연·페스티벌 ${n}곳`:'아직 손잡은 기록이 없어요',380,34,F_HAND);ctx.fillText(n?`다녀온 공연·페스티벌 ${n}곳`:'아직 손잡은 기록이 없어요',0,46);
+  ctx.restore();ctx.textAlign='left';
+}
+/* outdoor (open-air) festival field */
+function renderCrowdOpenAir(ctx,recs,time){
+  const r=rng('openair'),moving=reduced()?0:1;
+  // late-afternoon sky
+  const sky=ctx.createLinearGradient(0,0,0,640);sky.addColorStop(0,'#4fa9ec');sky.addColorStop(.55,'#a6daf6');sky.addColorStop(1,'#ffd7ad');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  const sx=880,sy=170,sg=ctx.createRadialGradient(sx,sy,10,sx,sy,240);
+  sg.addColorStop(0,'rgba(255,246,200,1)');sg.addColorStop(.3,'rgba(255,224,140,.75)');sg.addColorStop(1,'rgba(255,224,140,0)');
+  ctx.fillStyle=sg;ctx.fillRect(sx-240,sy-240,480,480);ctx.fillStyle='#fff4c8';ctx.beginPath();ctx.arc(sx,sy,60,0,7);ctx.fill();
+  // drifting clouds
+  for(let i=0;i<5;i++){const s=.6+r()*.7,y=50+r()*190,x=((r()*(W+400)+time*(10+i*5))%(W+400))-260;
+    ctx.fillStyle='rgba(255,255,255,.93)';for(const[dx,dy,rad]of[[0,0,42],[48,-24,54],[104,0,44],[52,10,46]]){ctx.beginPath();ctx.arc(x+dx*s,y+dy*s,rad*s,0,7);ctx.fill()}}
+  // hills and treeline
+  ctx.fillStyle='#9fd3a6';ctx.beginPath();ctx.moveTo(0,560);ctx.quadraticCurveTo(260,470,560,540);ctx.quadraticCurveTo(820,600,W,500);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+  ctx.fillStyle='#4f9a68';for(let x=-10;x<W+30;x+=34+r()*20){const y=548+Math.sin(x/90)*14;ctx.beginPath();ctx.arc(x,y,20+r()*16,0,7);ctx.fill()}
+  // field
+  const fg=ctx.createLinearGradient(0,560,0,H);fg.addColorStop(0,'#7cc46d');fg.addColorStop(1,'#4f9a4f');ctx.fillStyle=fg;ctx.fillRect(0,566,W,H-566);
+  // truss stage with canopy
+  const tower=(x)=>{ctx.fillStyle='#b9bcc6';ctx.fillRect(x,150,40,420);ctx.strokeStyle='#8a8e99';ctx.lineWidth=3;
+    for(let y=150;y<570;y+=40){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+40,y+40);ctx.moveTo(x+40,y);ctx.lineTo(x,y+40);ctx.stroke()}};
+  ctx.fillStyle='#2c2840';ctx.beginPath();ctx.moveTo(150,190);ctx.lineTo(930,190);ctx.lineTo(905,250);ctx.lineTo(175,250);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#b9bcc6';ctx.fillRect(130,140,820,46);ctx.strokeStyle='#8a8e99';ctx.lineWidth=3;
+  for(let x=130;x<950;x+=46){ctx.beginPath();ctx.moveTo(x,140);ctx.lineTo(x+23,186);ctx.lineTo(x+46,140);ctx.stroke()}
+  tower(130);tower(910);
+  ctx.fillStyle='#1d1a2c';ctx.fillRect(175,250,730,240);
+  const scr=ctx.createLinearGradient(200,260,880,470);scr.addColorStop(0,'#ff4f79');scr.addColorStop(.5,'#ff8a3d');scr.addColorStop(1,'#ffd23f');
+  ctx.fillStyle=scr;ctx.fillRect(200,266,680,206);ctx.fillStyle='rgba(0,0,0,.12)';for(let y=266;y<472;y+=6)ctx.fillRect(200,y,680,2);
+  ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.font=`40px ${F_BAND}`;ctx.fillText('OPEN AIR',W/2,318);
+  fitFont(ctx,'TICKET BOOK FEST',640,92,F_BAND);ctx.fillText('TICKET BOOK FEST',W/2,404);
+  ctx.font=`700 40px ${F_HAND}`;ctx.fillText(recs.length?`올해 다녀온 공연 ${recs.length}곳`:'아직 올라온 손이 없어요',W/2,454);
+  ctx.fillStyle='#2a2638';ctx.fillRect(110,490,860,80);
+  for(const x of[40,960]){ctx.fillStyle='#17151f';ctx.fillRect(x,300,80,270);ctx.fillStyle='#3a3648';
+    for(const y of[350,440,520]){ctx.beginPath();ctx.arc(x+40,y,y===520?22:30,0,7);ctx.fill()}}
+  // bunting strings
+  const bunt=(x0,y0,x1,y1,sag,cols)=>{ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x0,y0);ctx.quadraticCurveTo((x0+x1)/2,(y0+y1)/2+sag,x1,y1);ctx.stroke();
+    const n=Math.floor(Math.hypot(x1-x0,y1-y0)/46);for(let i=0;i<n;i++){const t=(i+.5)/n,mx=(x0+x1)/2,my=(y0+y1)/2+sag;
+      const px=(1-t)*(1-t)*x0+2*(1-t)*t*mx+t*t*x1,py=(1-t)*(1-t)*y0+2*(1-t)*t*my+t*t*y1,sw=Math.sin(time*3+i)*3*moving;
+      ctx.fillStyle=cols[i%cols.length];ctx.beginPath();ctx.moveTo(px-16,py);ctx.lineTo(px+16,py);ctx.lineTo(px+sw,py+38);ctx.closePath();ctx.fill()}};
+  const bc=['#ff4f79','#ffd23f','#2f6bff','#22c08a','#ff8a3d','#ffffff'];
+  bunt(-20,60,1100,60,110,bc);bunt(-20,330,150,160,40,bc);bunt(930,160,1100,330,40,bc);
+  // tall festival flags waving in the wind
+  for(const[x,c]of[[250,'#ff4f79'],[540,'#2f6bff'],[830,'#ffd23f']]){
+    ctx.strokeStyle='#e9e9ee';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x,860);ctx.lineTo(x,520);ctx.stroke();
+    ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(x,524);
+    for(let k=0;k<=10;k++){const yy=524+k*24;ctx.lineTo(x+70+Math.sin(time*2.2+k*.6+x)*12*moving,yy)}
+    ctx.lineTo(x,764);ctx.closePath();ctx.fill()}
+  // confetti
+  const cc=['#ff4f79','#ffd23f','#2f6bff','#ffffff','#ff8a3d'];
+  for(let i=0;i<45;i++){const x=(r()*W+Math.sin(time+i)*20),y=(r()*H+time*(40+r()*50)*moving)%H,s=7+r()*8;
+    ctx.save();ctx.translate(x,y);ctx.rotate(time*2*moving+i);ctx.fillStyle=cc[i%cc.length];ctx.globalAlpha=.85;ctx.fillRect(-s/2,-s/4,s,s/2);ctx.restore()}
+  // audience back row (sunlit, colourful shirts, some bucket hats)
+  const shirts=['#ff9fb8','#7fb6ff','#ffe08a','#9fe0b4','#c7b5ff','#ffffff','#ffb27a'];
+  const person=(x,y,hr,hair,dim)=>{ctx.fillStyle=shade(shirts[Math.floor(r()*shirts.length)],dim);ctx.beginPath();ctx.roundRect(x-hr*1.6,y+hr*.75,hr*3.2,400,hr*.9);ctx.fill();
+    ctx.fillStyle=hair;ctx.beginPath();ctx.arc(x,y,hr,0,7);ctx.fill();
+    if(r()<.3){ctx.fillStyle=shade(shirts[Math.floor(r()*shirts.length)],dim-.1);ctx.beginPath();ctx.ellipse(x,y-hr*.35,hr*1.4,hr*.32,0,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(x,y-hr*.6,hr*.9,hr*.55,0,Math.PI,0);ctx.fill()}};
+  for(let x=-20;x<W+60;x+=70+r()*30)person(x,1020+r()*40,36+r()*10,'#4a3a33',-.25);
+  // raised hands
+  crowdHits=[];
+  const n=recs.length,perRow=n<=4?n:Math.ceil(n/2),rows=n>4?2:1,s=n<=2?.6:n<=4?.5:n<=8?.42:.34;
+  recs.forEach((rec,i)=>{
+    const row=rows===2&&i>=perRow?1:0,idx=row?i-perRow:i,cnt=row?n-perRow:perRow,jr=rng(rec.id+'x');
+    const x=(idx+.5)/cnt*W+(jr()-.5)*40+(row?W/cnt/4:0),base=(row?900:760)+(jr()-.5)*70;
+    const bob=Math.sin(time*2.4+i*1.3)*16*moving,rot=(jr()-.5)*.25+Math.sin(time*1.6+i)*.05*moving;
+    ctx.save();ctx.translate(x,base+bob);ctx.rotate(rot);ctx.scale(s,s);
+    drawHand(ctx,rec,0,0,(H-base)/s+120,rec.pose);drawWrist(ctx,rec,0,0,1,rng(rec.id));ctx.restore();
+    crowdHits.push({id:rec.id,x0:x-150*s,x1:x+150*s,y0:base-520*s,y1:base+400*s});
+  });
+  // audience front row
+  for(let x=-30;x<W+80;x+=110+r()*40)person(x,1245+r()*50,56+r()*14,'#2a201c',-.05);
+  // warm sunlight wash
+  const wash=ctx.createLinearGradient(W,0,0,H);wash.addColorStop(0,'rgba(255,200,120,.22)');wash.addColorStop(.6,'rgba(255,200,120,0)');ctx.fillStyle=wash;ctx.fillRect(0,0,W,H);
+  ctx.textAlign='left';
+}
+function renderCrowdNight(ctx,recs,time){
+  const r=rng('crowd');
+  const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#0f0b26');sky.addColorStop(.45,'#2b1552');sky.addColorStop(1,'#4a1d5c');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  // stage + LED screen
+  ctx.fillStyle='#09071a';ctx.fillRect(0,400,W,160);
+  const scr=ctx.createLinearGradient(150,90,930,360);scr.addColorStop(0,'#ff4f79');scr.addColorStop(.5,'#8b5cf6');scr.addColorStop(1,'#2f6bff');
+  ctx.fillStyle='#1a1438';ctx.fillRect(140,80,800,300);ctx.fillStyle=scr;ctx.globalAlpha=.9;ctx.fillRect(156,96,768,268);ctx.globalAlpha=1;
+  ctx.fillStyle='rgba(0,0,0,.18)';for(let y=96;y<364;y+=6)ctx.fillRect(156,y,768,2);
+  ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font=`96px ${F_BAND}`;ctx.fillText('TICKET BOOK FEST',W/2,232);
+  ctx.font=`700 46px ${F_HAND}`;ctx.fillText(recs.length?`올해 다녀온 공연 ${recs.length}곳`:'아직 올라온 손이 없어요',W/2,310);
+  // light beams
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const beams=['rgba(255,79,121,.16)','rgba(127,214,255,.16)','rgba(255,210,63,.14)','rgba(139,92,246,.18)','rgba(34,192,138,.12)'];
+  beams.forEach((c,i)=>{const ox=80+i*230,a=Math.sin(time*.7+i*1.7)*.35+(i-2)*.08;ctx.save();ctx.translate(ox,40);ctx.rotate(a);
+    const g=ctx.createLinearGradient(0,0,0,1300);g.addColorStop(0,c);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;
+    ctx.beginPath();ctx.moveTo(-14,0);ctx.lineTo(14,0);ctx.lineTo(190,1300);ctx.lineTo(-190,1300);ctx.closePath();ctx.fill();ctx.restore()});
+  ctx.restore();
+  ctx.fillStyle='#ffffff';for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(80+i*230,40,10,0,7);ctx.fill()}
+  // confetti
+  const cc=['#ff4f79','#ffd23f','#7fd6ff','#c7f464','#ffffff'];
+  for(let i=0;i<70;i++){const x=(r()*W+Math.sin(time+i)*20),y=(r()*H+time*(40+r()*50))%H,s=6+r()*8;
+    ctx.save();ctx.translate(x,y);ctx.rotate(time*2+i);ctx.fillStyle=cc[i%cc.length];ctx.globalAlpha=.8;ctx.fillRect(-s/2,-s/4,s,s/2);ctx.restore()}
+  // back row of heads
+  ctx.fillStyle='#1e1638';for(let x=-20;x<W+60;x+=70+r()*30){const y=1030+r()*40;ctx.beginPath();ctx.arc(x,y,40+r()*12,0,7);ctx.fill();ctx.fillRect(x-60,y+20,120,400)}
+  // raised hands
+  crowdHits=[];
+  const n=recs.length,perRow=n<=4?n:Math.ceil(n/2),rows=n>4?2:1,s=n<=2?.62:n<=4?.5:n<=8?.42:.34;
+  recs.forEach((rec,i)=>{
+    const row=rows===2&&i>=perRow?1:0,idx=row?i-perRow:i,cnt=row?n-perRow:perRow;
+    const jr=rng(rec.id+'x');
+    const x=(idx+.5)/cnt*W+(jr()-.5)*40+(row?W/cnt/4:0);
+    const base=(row?880:720)+(jr()-.5)*70;
+    const still=reduced()?0:1,bob=Math.sin(time*2.4+i*1.3)*16*still,rot=(jr()-.5)*.25+Math.sin(time*1.6+i)*.05*still;
+    ctx.save();ctx.translate(x,base+bob);ctx.rotate(rot);ctx.scale(s,s);
+    drawHand(ctx,rec,0,0,(H-base)/s+120,rec.pose);drawWrist(ctx,rec,0,0,1,rng(rec.id));
+    ctx.restore();
+    crowdHits.push({id:rec.id,x0:x-150*s,x1:x+150*s,y0:base-520*s,y1:base+400*s});
+  });
+  // front row: silhouettes of the audience
+  for(let x=-30;x<W+80;x+=110+r()*40){const y=1240+r()*50,hr=58+r()*14;
+    ctx.fillStyle='#120c24';ctx.beginPath();ctx.arc(x,y,hr,0,7);ctx.fill();
+    ctx.beginPath();ctx.roundRect(x-hr*1.6,y+hr*.7,hr*3.2,300,60);ctx.fill();
+    ctx.strokeStyle='rgba(255,140,200,.25)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,hr,Math.PI*1.1,Math.PI*1.6);ctx.stroke()}
+  ctx.textAlign='left';
+}
+function crowdUI(){
+  const st=document.getElementById('stage');
+  st.innerHTML=`<canvas id="crowd" width="${W}" height="${H}" aria-label="저장한 기록마다 한 명씩 손잡고 원을 그리며 춤추는 잔디밭 장면"></canvas>
+  <p class="stage-hint" id="crowdHint">${cloudConfigured()?'모두가 공개한 기록이 한 사람씩 모여 춤춰요. 누르면 그 기록을 볼 수 있어요':'팔찌를 찬 사람이 내 기록이에요. 누르면 공책의 그 페이지로 넘어가요'}</p>
+  <div class="stage-actions"><button class="btn" id="crowdImg">이미지로 보기</button></div>`;
+  const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d');let recs=cloudConfigured()?[]:ordered();
+  recs.forEach(r=>r.bands.forEach(getImg));
+  if(cloudConfigured())window.TBCloud.loadPublic().then(list=>{recs.splice(0,recs.length,...list);list.forEach(r=>r.bands.forEach(getImg));
+    if(!list.length){const h=document.getElementById('crowdHint');if(h)h.textContent='아직 공개된 기록이 없어요. 기록을 만들 때 공개로 설정하면 여기에 나와요'}})
+    .catch(err=>{console.error(err);const h=document.getElementById('crowdHint');if(h)h.textContent='공개 기록을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요'});
+  const t0=performance.now();
+  const loop=now=>{if(view!=='home'||homeMode!=='crowd'||!document.getElementById('crowd'))return;
+    renderCrowd(ctx,recs,(now-t0)/1000);if(!reduced())crowdRaf=requestAnimationFrame(loop)};
+  crowdRaf=requestAnimationFrame(loop);
+  cv.onclick=e=>{const b=cv.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*W,y=(e.clientY-b.top)/b.height*H;
+    const hit=[...crowdHits].reverse().find(h=>x>=h.x0&&x<=h.x1&&y>=h.y0&&y<=h.y1);
+    if(!hit)return;
+    if(records.some(r=>r.id===hit.id)){homeMode='book';home({focus:hit.id});return}
+    const other=recs.find(r=>r.id===hit.id);if(other)showRecord(other)};
+  st.querySelector('#crowdImg').onclick=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;renderCrowd(c.getContext('2d'),recs,1.2);
+    const m=document.createElement('div');m.className='modal';
+    m.innerHTML=`<div class="modal-in"><img src="${c.toDataURL('image/png')}" alt="관객석 전체 이미지"><a class="btn primary" href="${c.toDataURL('image/png')}" download="ticketbook-crowd.png" style="text-align:center;text-decoration:none">이미지 저장</a><button class="btn" id="close">닫기</button></div>`;
+    document.body.appendChild(m);m.onclick=ev=>{if(ev.target===m||ev.target.id==='close')m.remove()}};
+}
+
+function homeOld(){
+  view='home';
+  const sorted=[...records].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  $app.innerHTML=`
+  <header><div class="brand">TICKET BOOK<small>팔찌·티켓 다이어리</small></div></header>
+  <section class="hero">
+    <h1>버리기 아까운 입장 팔찌, 종이 손목에 다시 채워 남겨요</h1>
+    <p>손 모양을 고르고 팔찌를 채우면 펼친 다이어리 한 장이 완성돼요. 실제 팔찌 사진도 올릴 수 있어요.</p>
+    <button class="btn primary" id="new">+ 새 기록 만들기</button>
+  </section>
+  <div class="sec-title">내 기록 ${records.length}</div>
+  <div class="grid">${sorted.map(r=>`
+    <button class="card" data-id="${r.id}"><img alt="${esc(shown(r))} 기록 카드" data-thumb="${r.id}">
+    <b>${esc(shown(r))}${r.sample?'<span class="pill">예시</span>':''}</b><span>${fmtDate(r.date)}</span></button>`).join('')}
+  </div>`;
+  $app.querySelector('#new').onclick=()=>edit(null);
+  $app.querySelectorAll('.card').forEach(b=>b.onclick=()=>edit(b.dataset.id));
+  const bar=document.getElementById('bar');if(bar)bar.remove();
+  requestAnimationFrame(()=>$app.querySelectorAll('[data-thumb]').forEach(im=>{const r=records.find(x=>x.id===im.dataset.thumb);
+    r.bands.forEach(getImg);im.src=toCanvas(r,.3).toDataURL('image/jpeg',.8)}));
+}
+
+const swatches=(list,cur,act,label)=>`<div class="sw" data-act="${act}">${list.map(c=>`<button style="background:${c}" data-v="${c}" aria-label="${label} ${c}" aria-pressed="${cur===c}"></button>`).join('')}</div>`;
+
+function edit(id,keep){
+  view='edit';animT=1;if(!keep)searchOpen=false;
+  const src=records.find(r=>r.id===id);
+  if(!keep)draft=src?JSON.parse(JSON.stringify(src)):{id:uid(),title:'',name:'',flag:'',date:new Date().toISOString().slice(0,10),place:'',pose:'rock',
+    skin:SKINS[0],letter:LETTERS[0],flagColor:FLAGS[0],paper:'cream',kind:'ticket',bands:[{id:uid(),color:'#ff5a2e',color2:'#ffd23f',pattern:'stripe',text:'1DAY'}],
+    ticket:{cat:'콘서트',color:'#f6d05a',ink:'#c8202e',seat:'',no:'',face:'photo'}};
+  draft.kind=draft.kind||'band';draft.ticket=draft.ticket||{cat:'전시',color:'#f6d05a',seat:'',no:''};
+  const pal=draft.palette||[];
+  const kindLabel=draft.kind==='ticket'?`${draft.ticket.cat||'공연'} · 티켓`:'페스티벌 · 팔찌';
+  $app.innerHTML=`
+  <header><button class="btn ghost" id="back">← 내 기록</button>${src?'<button class="btn ghost" id="del">삭제</button>':''}</header>
+  <div class="preview${!draft.poster||searchOpen?' static':''}"><canvas id="cv" width="${W}" height="${H}" aria-label="기록 카드 미리보기"></canvas>
+    <div style="display:flex;gap:8px"><button class="btn" id="play" style="flex:1">▶ 팔찌 채우는 장면 보기</button><button class="btn" id="tflip">↻ 뒤집기</button></div></div>
+  <section class="panel" id="posterPanel">
+    ${draft.poster&&!searchOpen?`<div class="poster-row"><img src="${draft.poster}" alt="공연 포스터">
+      <div class="poster-info"><span class="pill-k">${esc(kindLabel)}</span><b>${esc(shown(draft))}</b>
+      <span class="hint" id="pstatus" aria-live="polite">${draft.source?'공연 정보로 만들었어요. 아래에서 마음대로 고칠 수 있어요':'포스터에서 읽은 정보로 만들었어요. 아래에서 마음대로 고칠 수 있어요'}</span>
+      <button class="btn ghost" id="reSearch" style="justify-self:start;padding:6px 0">다른 공연 찾기</button></div></div>`
+    :`<h2>어떤 공연을 봤나요?</h2>
+      <form class="search" id="sform" role="search"><input type="search" id="sq" placeholder="공연·페스티벌 이름 (예: 펜타포트, 레미제라블)" autocomplete="off" enterkeyhint="search">
+      <button class="btn primary" type="submit">찾기</button></form>
+      <span class="hint" id="pstatus" aria-live="polite">공연예술통합전산망과 한국관광공사 축제 정보에서 찾아요</span>
+      <div class="results" id="results"></div>
+      <label class="drop small" id="drop"><b>찾는 공연이 없나요? 포스터 사진 올리기</b>
+        <span>사진 속 글자를 읽어서 만들어 드려요</span>
+        <input type="file" accept="image/jpeg,image/png,image/webp" id="f-poster"></label>`}
+  </section>
+  <section class="panel"><h2>무엇을 남길까요?</h2>
+    <div class="tabs" id="kind" style="margin:0;background:var(--sunk)">
+      <button class="chip" data-v="band" aria-pressed="${draft.kind!=='ticket'}">페스티벌 · 팔찌</button>
+      <button class="chip" data-v="ticket" aria-pressed="${draft.kind==='ticket'}">전시·공연 · 티켓</button></div>
+  </section>
+  <section class="panel"><h2 id="handTitle">손 모양</h2>
+    <div class="pose" id="pose">${POSES.map(([k,e,l])=>`<button data-v="${k}" aria-pressed="${draft.pose===k}"><span>${e}</span>${l}</button>`).join('')}</div>
+    <div class="mini">종이 색</div>${swatches(pal.length?uniq([...posterSet(pal,[],'light').slice(0,9),...SKINS]):SKINS,draft.skin,'skin','손 종이 색')}
+  </section>
+  <section class="panel" id="ticketPanel"><h2>티켓 <span class="hint">사진면은 포스터, 정보면은 맞춤 디자인</span></h2>
+    <div class="tabs" id="tface" style="margin:0;background:var(--sunk)"><button class="chip" data-v="photo" aria-pressed="${draft.ticket.face!=='info'}">앞면 · 사진</button><button class="chip" data-v="info" aria-pressed="${draft.ticket.face==='info'}">뒷면 · 정보</button></div>
+    <div class="mini">종류</div><div class="seg" id="tcat">${TICKET_CATS.map(([k])=>`<button class="chip" data-v="${k}" aria-pressed="${draft.ticket.cat===k}">${k}</button>`).join('')}</div>
+    <div class="row2"><div class="field"><label for="f-time">시간</label><input type="time" id="f-time" value="${esc(draft.ticket.time)}"></div>
+    <div class="field"><label for="f-cast">출연</label><input type="text" id="f-cast" maxlength="20" placeholder="예) 아티스트 이름" value="${esc(draft.ticket.cast)}"></div></div>
+    <div class="row2"><div class="field"><label for="f-seat">좌석</label><input type="text" id="f-seat" maxlength="20" placeholder="예) R석 B열 14번" value="${esc(draft.ticket.seat)}"></div>
+    <div class="field"><label for="f-tno">티켓 번호 (선택)</label><input type="text" id="f-tno" maxlength="12" placeholder="예) NO.0914" value="${esc(draft.ticket.no)}"></div></div>
+    <div class="mini">별점</div><div class="seg" id="trate">${[1,2,3,4,5].map(n=>`<button class="chip" data-v="${n}" aria-label="별점 ${n}점" aria-pressed="${(draft.ticket.rating||0)>=n}">★</button>`).join('')}</div>
+    <div class="field"><label for="f-review">한줄평</label><input type="text" id="f-review" maxlength="30" placeholder="예) 마지막 곡에서 울었다" value="${esc(draft.ticket.review)}"></div>
+    <div class="mini">바탕색</div>${swatches(posterSet(pal,TICKET_COLORS),draft.ticket.color,'tcolor','티켓 바탕색')}
+    <div class="mini">글자·선 색</div>${swatches(posterSet(pal,TICKET_INKS),ticketPalette(draft).ink,'tink','티켓 글자 색')}
+  </section>
+  <section class="panel" id="bandPanel"><h2>팔찌 <span class="hint">최대 3개 · 손목부터 채워져요</span></h2><div id="bands" style="display:grid;gap:10px"></div>
+    <button class="btn" id="addb">+ 팔찌 추가</button></section>
+  ${cloudOn()?`<section class="panel"><label class="switch-row" for="f-public"><input type="checkbox" id="f-public" ${draft.public?'checked':''}>
+    <span><b>다 같이 보기에 공개</b><span class="hint">켜면 모든 방문자의 '다 같이 보기'에 이 기록이 나와요. 끄면 나만 볼 수 있어요</span></span></label></section>`:''}
+  <section class="panel"><h2>왼쪽 페이지</h2>
+    <div class="field"><label for="f-title">오려 붙일 글자</label><input type="text" id="f-title" maxlength="20" placeholder="예) PEN/TA/PORT" value="${esc(draft.title)}">
+      <span class="hint">/ 를 넣으면 그 자리에서 줄이 바뀌어요</span></div>
+    <div class="mini">글자 색</div>${swatches(posterSet(pal,LETTERS),draft.letter,'letter','글자 색')}
+    <div class="field"><label for="f-flag">깃발 문구</label><input type="text" id="f-flag" maxlength="16" value="${esc(draft.flag)}"></div>
+    <div class="mini">깃발 색</div>${swatches(posterSet(pal,FLAGS,'light'),draft.flagColor,'flagColor','깃발 색')}
+    <div class="row2"><div class="field"><label for="f-date">날짜</label><input type="date" id="f-date" value="${esc(draft.date)}"></div>
+    <div class="field"><label for="f-place">장소</label><input type="text" id="f-place" maxlength="16" placeholder="예) 인천 송도" value="${esc(draft.place)}"></div></div>
+    <div class="mini">속지</div><div class="seg" id="pap">${PAPERS.map(([k,l])=>`<button class="chip" data-v="${k}" aria-pressed="${draft.paper===k}">${l}</button>`).join('')}</div>
+  </section>`;
+  let bar=document.getElementById('bar');if(bar)bar.remove();
+  bar=document.createElement('div');bar.className='bar';bar.id='bar';
+  bar.innerHTML=`<div class="bar-in"><button class="btn" id="export">이미지로 보기</button><button class="btn primary" id="save">기록 보관하기</button></div>`;
+  document.body.appendChild(bar);
+  const $=q=>$app.querySelector(q);
+  const bind=(sel,key)=>$(sel).oninput=e=>{draft[key]=e.target.value;drawAll()};
+  bind('#f-title','title');bind('#f-flag','flag');bind('#f-date','date');bind('#f-place','place');
+  const pickSel=(sel,set)=>{const btns=$app.querySelectorAll(sel);btns.forEach(c=>c.onclick=()=>{set(c.dataset.v);btns.forEach(x=>x.setAttribute('aria-pressed',x===c));drawAll()})};
+  pickSel('#pose button',v=>draft.pose=v);pickSel('#pap .chip',v=>draft.paper=v);
+  for(const k of['skin','letter','flagColor'])pickSel(`.panel > [data-act=${k}] button`,v=>draft[k]=v);
+  pickSel('#ticketPanel [data-act=tcolor] button',v=>draft.ticket.color=v);
+  pickSel('#ticketPanel [data-act=tink] button',v=>draft.ticket.ink=v);
+  const autoFlags=['MUSIC FESTIVAL',...TICKET_CATS.map(c=>c[1])];
+  const setFlag=v=>{if(autoFlags.includes((draft.flag||'').trim())||!draft.flag){draft.flag=v;$('#f-flag').value=v}};
+  const syncKind=()=>{const tk=draft.kind==='ticket';
+    $('#pose').hidden=tk;$('#handTitle').textContent=tk?'손 종이 색':'손 모양';
+    $('#ticketPanel').hidden=!tk;$('#bandPanel').hidden=tk;$('#tflip').hidden=!tk;
+    $('#play').textContent=tk?'▶ 티켓 쥐어주기':'▶ 팔찌 채우는 장면 보기'};
+  $app.querySelectorAll('#kind .chip').forEach(c=>c.onclick=()=>{draft.kind=c.dataset.v;
+    $app.querySelectorAll('#kind .chip').forEach(x=>x.setAttribute('aria-pressed',x===c));
+    if(draft.kind==='band'&&!draft.bands.length)draft.bands.push({id:uid(),color:pal[0]||'#ff5a2e',color2:pal[1]||'#ffd23f',pattern:pal.length?'poster':'stripe',text:'1DAY'});
+    if(draft.kind==='ticket')draft.ticket.face='photo';syncFace();
+    setFlag(draft.kind==='ticket'?(TICKET_CATS.find(x=>x[0]===draft.ticket.cat)||TICKET_CATS[0])[1]:'MUSIC FESTIVAL');bandsUI();syncKind();play()});
+  $app.querySelectorAll('#tcat .chip').forEach(c=>c.onclick=()=>{draft.ticket.cat=c.dataset.v;
+    $app.querySelectorAll('#tcat .chip').forEach(x=>x.setAttribute('aria-pressed',x===c));setFlag(TICKET_CATS.find(x=>x[0]===c.dataset.v)[1]);drawAll()});
+  $app.querySelectorAll('#tface .chip').forEach(c=>c.onclick=()=>{draft.ticket.face=c.dataset.v;syncFace();drawAll()});
+  for(const[sel,key]of[['#f-time','time'],['#f-cast','cast'],['#f-review','review'],['#f-seat','seat'],['#f-tno','no']])$(sel).oninput=e=>{draft.ticket[key]=e.target.value;drawAll()};
+  $app.querySelectorAll('#trate .chip').forEach(c=>c.onclick=()=>{const n=+c.dataset.v;draft.ticket.rating=draft.ticket.rating===n?n-1:n;
+    $app.querySelectorAll('#trate .chip').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.v<=draft.ticket.rating));drawAll()});
+  $('#addb').onclick=()=>{if(draft.bands.length>=3){toast('팔찌는 3개까지 채울 수 있어요');return}
+    const c=pal[draft.bands.length%(pal.length||1)]||PALETTE[Math.floor(Math.random()*PALETTE.length)];
+    draft.bands.push({id:uid(),color:c,color2:pal[1]||'#f4f4f2',pattern:'solid',text:'DAY '+(draft.bands.length+1)});bandsUI();drawAll()};
+  $('#play').onclick=play;$('#tflip').onclick=flipTicket;$('#back').onclick=home;
+  const pub=$('#f-public');if(pub)pub.onchange=e=>{draft.public=e.target.checked};
+  const fp=$('#f-poster');if(fp)fp.onchange=e=>{const f=e.target.files[0];if(f)takePoster(f)};
+  const rs=$('#reSearch');if(rs)rs.onclick=()=>{searchOpen=true;edit(draft.id,true);setTimeout(()=>{const q=document.getElementById('sq');if(q)q.focus()},50)};
+  const sf=$('#sform');if(sf)sf.onsubmit=e=>{e.preventDefault();runSearch($('#sq').value)};
+  const drop=$('#drop');
+  if(drop){drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};drop.ondragleave=()=>drop.classList.remove('over');
+    drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))takePoster(f)}}
+  if(src)$('#del').onclick=e=>{
+    if(e.target.dataset.armed){
+      if(cloudOn()){e.target.disabled=true;window.TBCloud.remove(src.id).then(()=>{records=records.filter(r=>r.id!==src.id);clearPages();toast('기록을 삭제했어요');home()})
+        .catch(err=>{console.error(err);e.target.disabled=false;toast('삭제하지 못했어요. 다시 눌러 주세요')});return}
+      records=records.filter(r=>r.id!==src.id);persist();clearPages();toast('기록을 삭제했어요');home()}
+    else{e.target.dataset.armed=1;e.target.textContent='한 번 더 누르면 삭제';e.target.style.color='var(--accent)'}};
+  document.getElementById('export').onclick=()=>{
+    const rec=clean(),url=toCanvas(rec,1).toDataURL('image/png');let extra='',extraUrl='';
+    if(rec.kind==='ticket'){const c=document.createElement('canvas');c.width=W;c.height=H;renderTicketSheet(c.getContext('2d'),rec);
+      extraUrl=c.toDataURL('image/png');extra=`<img src="${extraUrl}" alt="티켓 정보면과 사진면">`}
+    const m=document.createElement('div');m.className='modal';
+    m.innerHTML=`<div class="modal-in"><img src="${url}" alt="완성된 기록 카드">${extra}<a class="btn primary" href="${url}" download="ticketbook-page.png" style="text-align:center;text-decoration:none">페이지 이미지 저장</a>${extra?`<a class="btn" href="${extraUrl}" download="ticketbook-ticket.png" style="text-align:center;text-decoration:none">티켓 앞뒷면 이미지 저장</a>`:''}<p>1080×1350 · 인스타 4:5 크기예요</p><button class="btn" id="close">닫기</button></div>`;
+    document.body.appendChild(m);m.onclick=e=>{if(e.target===m||e.target.id==='close')m.remove()}};
+  document.getElementById('save').onclick=async e=>{
+    if(reading){toast('포스터를 읽는 중이에요. 잠시만요');return}
+    const btn=e.currentTarget;if(btn.disabled)return;
+    let rec=clean();delete rec.sample;
+    if(cloudOn()){
+      btn.disabled=true;btn.textContent='저장하는 중…';
+      try{const saved=await window.TBCloud.save(rec);const i=records.findIndex(r=>r.id===rec.id||r.id===saved.id);
+        if(i>=0)records[i]=saved;else records.push(saved);rec=saved;toast('내 계정에 보관했어요')}
+      catch(err){console.error(err);btn.disabled=false;btn.textContent='기록 보관하기';toast('저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요');return}
+    }else{
+      const i=records.findIndex(r=>r.id===rec.id);
+      if(i>=0)records[i]=rec;else records.push(rec);
+      toast(persist()?'공책에 보관했어요':'이 브라우저에서는 저장이 안 돼요. 이미지로 저장해 주세요');
+    }
+    clearPages();homeMode='book';home({focus:rec.id})};
+  syncKind();bandsUI();drawAll();
+  if(!src&&!keep)setTimeout(play,250);
+}
+
+
+
+
+/* ---------- account & cloud hooks (cloud.js calls these) ---------- */
+let cloudState='off',cloudMsg='';
+const IMPORT_DONE='bandlog.imported.';
+window.TBApp={
+  cloudUnavailable(){cloudState='off';renderAccount()},
+  cloudReady(){if(cloudState==='off')cloudState='ready';renderAccount()},
+  cloudLoading(){cloudState='loading';renderAccount()},
+  cloudError(m){cloudState='ready';cloudMsg=m;renderAccount();toast(m)},
+  useCloud(list){cloudState='ready';records=list;pageIdx=0;clearPages();refreshHome()},
+  useLocal(){cloudState='ready';records=localRecords;pageIdx=0;clearPages();refreshHome()},
+};
+function refreshHome(){if(view==='home')home();else renderAccount()}
+function localImportable(){
+  const C=window.TBCloud;if(!C||!C.user)return[];
+  try{if(localStorage.getItem(IMPORT_DONE+C.user.id))return[]}catch(e){}
+  return(localRecords||[]).filter(r=>!r.sample);
+}
+function renderAccount(){
+  const a=document.getElementById('acct'),note=document.getElementById('cloudNote');if(!a)return;
+  const C=window.TBCloud;
+  if(!C||!C.configured){a.innerHTML='';if(note)note.innerHTML='';return}
+  if(C.user){
+    const name=(C.user.email||'내 계정').split('@')[0];
+    a.innerHTML=`<button class="btn ghost acct-btn" id="acctBtn" type="button" aria-label="내 계정">☁ ${esc(name)}</button>`;
+  }else a.innerHTML=`<button class="btn ghost acct-btn" id="acctBtn" type="button">로그인</button>`;
+  document.getElementById('acctBtn').onclick=openAccount;
+  if(!note)return;
+  const todo=localImportable();
+  if(cloudState==='loading')note.innerHTML=`<div class="note">내 기록을 불러오는 중이에요…</div>`;
+  else if(todo.length)note.innerHTML=`<div class="note"><span>이 브라우저에 저장된 기록 ${todo.length}개가 있어요. 내 계정으로 옮기면 다른 기기에서도 볼 수 있어요.</span>
+    <span class="note-actions"><button class="btn primary" id="importBtn" type="button">기존 기록 가져오기</button><button class="btn ghost" id="importSkip" type="button">다음에</button></span></div>`;
+  else if(!C.user)note.innerHTML=`<div class="note muted">로그인하면 휴대폰이나 다른 컴퓨터에서도 같은 기록을 볼 수 있어요.</div>`;
+  else note.innerHTML='';
+  const ib=document.getElementById('importBtn');if(ib)ib.onclick=()=>importLocalRecords(ib);
+  const sk=document.getElementById('importSkip');if(sk)sk.onclick=()=>{note.innerHTML=''};
+}
+async function importLocalRecords(btn){
+  const C=window.TBCloud,todo=localImportable();if(!todo.length)return;
+  btn.disabled=true;
+  try{
+    const saved=await C.importLocal(todo,(i,n)=>{btn.textContent=`옮기는 중… ${i}/${n}`});
+    try{localStorage.setItem(IMPORT_DONE+C.user.id,String(Date.now()))}catch(e){}
+    records=[...saved,...records];clearPages();toast(`기록 ${saved.length}개를 내 계정으로 옮겼어요`);home();
+  }catch(err){console.error(err);btn.disabled=false;btn.textContent='다시 시도';toast('옮기다가 문제가 생겼어요. 다시 눌러 주세요')}
+}
+function openAccount(){
+  const C=window.TBCloud;if(!C)return;
+  const m=document.createElement('div');m.className='modal';
+  if(C.user){
+    m.innerHTML=`<div class="modal-in"><b style="font-size:16px">내 계정</b><p style="text-align:left">${esc(C.user.email||'')}<br>기록은 이 계정에 저장돼서 다른 기기에서도 똑같이 보여요.</p>
+      <button class="btn" id="logout" type="button">로그아웃</button><button class="btn ghost" id="close" type="button">닫기</button></div>`;
+  }else{
+    m.innerHTML=`<form class="modal-in" id="loginForm"><b style="font-size:16px">이메일로 로그인</b>
+      <p style="text-align:left">이메일을 적으면 로그인 링크를 보내 드려요. 메일의 링크를 누르면 바로 로그인돼요. 처음이면 자동으로 가입돼요.</p>
+      <div class="field"><label for="loginEmail">이메일</label><input type="email" id="loginEmail" required autocomplete="email" placeholder="you@example.com"></div>
+      <button class="btn primary" type="submit" id="loginSend">로그인 링크 받기</button><span class="hint" id="loginMsg" aria-live="polite"></span>
+      <button class="btn ghost" id="close" type="button">닫기</button></form>`;
+  }
+  document.body.appendChild(m);
+  m.onclick=e=>{if(e.target===m||e.target.id==='close')m.remove()};
+  const lo=m.querySelector('#logout');if(lo)lo.onclick=async()=>{lo.disabled=true;await C.signOut();m.remove();toast('로그아웃했어요')};
+  const f=m.querySelector('#loginForm');
+  if(f){const em=m.querySelector('#loginEmail');setTimeout(()=>em.focus(),30);
+    f.onsubmit=async e=>{e.preventDefault();const b=m.querySelector('#loginSend'),msg=m.querySelector('#loginMsg');b.disabled=true;msg.textContent='보내는 중…';
+      try{await C.signIn(em.value.trim());msg.textContent='메일을 보냈어요. 메일함에서 로그인 링크를 눌러 주세요';b.textContent='다시 보내기'}
+      catch(err){console.error(err);msg.textContent=/rate|seconds/i.test(err.message||'')?'잠시 뒤 다시 시도해 주세요':'메일을 보내지 못했어요. 주소를 확인해 주세요'}
+      finally{b.disabled=false}}}
+}
+function showRecord(rec){
+  const url=toCanvas(rec,1).toDataURL('image/jpeg',.92);
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="modal-in"><img src="${url}" alt="${esc(shown(rec))} 기록 페이지"><p>${esc(shown(rec))} · ${esc(fmtDate(rec.date))}</p><button class="btn" id="close" type="button">닫기</button></div>`;
+  document.body.appendChild(m);m.onclick=e=>{if(e.target===m||e.target.id==='close')m.remove()};
+}
+
+/* ---------- search a real show → whole record ---------- */
+let searchOpen=false,lastResults=[];
+const GENRE_CAT={'대중음악':'콘서트','뮤지컬':'뮤지컬','연극':'연극','서양음악(클래식)':'클래식','한국음악(국악)':'클래식','클래식':'클래식','국악':'클래식','축제':'페스티벌'};
+const GENRE_FLAG={'콘서트':'LIVE CONCERT','뮤지컬':'MUSICAL','연극':'PLAY','클래식':'CLASSIC','전시':'EXHIBITION','페스티벌':'MUSIC FESTIVAL'};
+async function runSearch(q){
+  q=(q||'').trim();const box=document.getElementById('results');if(!q){setStatus('공연 이름을 적어 주세요');return}
+  setStatus(`'${q}' 찾는 중…`);box.innerHTML='';
+  try{const r=await fetch('/api/search?q='+encodeURIComponent(q));const d=await r.json();
+    if(!r.ok)throw d;
+    lastResults=d.results||[];
+    if(!lastResults.length){setStatus('찾는 공연이 없어요. 이름을 줄여서 다시 찾거나 포스터 사진을 올려 주세요');return}
+    setStatus(`${lastResults.length}개 찾았어요. 내가 본 공연을 골라 주세요`);
+    box.innerHTML=lastResults.map((it,i)=>`<button class="res" data-i="${i}" type="button">
+      <img src="${it.poster?'/api/image?url='+encodeURIComponent(it.poster):''}" alt="" loading="lazy">
+      <span class="res-t"><b>${esc(it.title)}</b><span>${esc([it.genre,it.place].filter(Boolean).join(' · '))}</span>
+      <span>${esc(dotDate(it.start))}${it.end&&it.end!==it.start?' ~ '+esc(dotDate(it.end)):''}</span></span></button>`).join('');
+    box.querySelectorAll('.res').forEach(b=>b.onclick=()=>pickShow(lastResults[+b.dataset.i]));
+  }catch(e){setStatus(({no_api_key:'공연 검색 키가 아직 설정되지 않았어요. 포스터 사진을 올려 주세요'})[e&&e.code]||'검색하다가 문제가 생겼어요. 잠시 뒤 다시 찾아 주세요')}
+}
+const dotDate=d=>d?d.replace(/-/g,'.'):'';
+function autoCut(title){
+  const t=title.replace(/[\[\(（〈<《].*?[\]\)）〉>》]/g,' ').replace(/\s+/g,' ').trim();
+  const out=[];
+  for(const w of t.split(' ').slice(0,3)){
+    const ko=/[가-힣]/.test(w),n=ko?(w.length===4?2:3):(w.length<=5?5:4);
+    for(let i=0;i<w.length;i+=n)out.push(w.slice(i,i+n));
+  }
+  return out.slice(0,4).join('/')||title.slice(0,8);
+}
+async function pickShow(it){
+  if(reading)return;reading=true;setStatus(`'${it.title}' 정보를 불러오는 중…`);
+  document.querySelectorAll('.res').forEach(b=>b.disabled=true);
+  try{
+    const r=await fetch('/api/pick?'+new URLSearchParams({source:it.source,id:it.id,poster:it.poster||''}));
+    const d=r.ok?await r.json():{};
+    if(d.image){
+      const im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=d.image});
+      const sc=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);draft.poster=c.toDataURL('image/jpeg',.86);draft.palette=extractPalette(c);
+    }
+    const cat=GENRE_CAT[it.genre]||(it.source==='tour'?'페스티벌':'콘서트');
+    const fest=cat==='페스티벌'||/페스티벌|페스타|festival|축제/i.test(it.title);
+    const today=new Date().toISOString().slice(0,10);
+    const date=it.start&&it.end&&it.start<=today&&today<=it.end?today:(it.start||today);
+    let days=[];
+    if(fest&&it.start){const s0=new Date(it.start),e0=new Date(it.end||it.start),n=Math.min(3,Math.round((e0-s0)/864e5)+1);
+      for(let i=0;i<n;i++){const x=new Date(s0.getTime()+i*864e5);days.push(`DAY${i+1} ${x.getMonth()+1}.${x.getDate()}`)}}
+    buildFromInfo({kind:fest?'festival':'ticket',category:fest?'페스티벌':cat,title:it.title,cutout:autoCut(it.title),
+      flag:GENRE_FLAG[fest?'페스티벌':cat]||'LIVE',date,time:d.time||'',place:(it.place||'').replace(/\s*\(.*?\)\s*/g,'').slice(0,16),cast:d.cast||'',days,vibe:fest?'rock':(cat==='클래식'?'chill':'cheer')});
+    draft.source=it.source;
+    if(draft.palette){applyPoster();colorize()}
+    reading=false;searchOpen=false;edit(draft.id,true);play();
+  }catch(e){reading=false;setStatus('정보를 불러오지 못했어요. 다른 결과를 고르거나 포스터 사진을 올려 주세요');document.querySelectorAll('.res').forEach(b=>b.disabled=false)}
+}
+/* ---------- poster → whole record ---------- */
+let reading=false;
+const setStatus=t=>{const s=document.getElementById('pstatus');if(s)s.textContent=t};
+// on the website, poster reading goes through our own server function (api/read-poster.js), which holds the API key
+async function getSample(){
+  return{json:async()=>{
+    let r;try{r=await fetch('/api/read-poster',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({image:draft.poster})})}
+    catch(e){throw{code:'upstream_error'}}
+    const data=await r.json().catch(()=>null);
+    if(!r.ok||!data)throw{code:(data&&data.code)||'upstream_error'};
+    return data;
+  }};
+}
+function posterPrompt(){
+  const y=new Date().getFullYear();
+  return `이 이미지는 공연·전시·페스티벌 포스터예요. 포스터에 적힌 내용을 읽고 아래 모양의 JSON 하나로만 답하세요. 포스터에 없는 정보는 지어내지 말고 빈 문자열로 두세요.
+{"kind":"festival 또는 ticket","category":"페스티벌|전시|콘서트|뮤지컬|연극|클래식 중 하나","title":"공식 공연명(짧게)","cutout":"다이어리에 큼직하게 오려 붙일 글자. 2~4줄을 /로 구분, 한 줄 2~4글자 (예: PEN/TA/PORT, 서울/재즈/페스)","flag":"깃발에 쓸 영문 대문자 2~3단어 (예: ROCK FESTIVAL, JAZZ NIGHT, EXHIBITION)","date":"YYYY-MM-DD 시작일","time":"HH:MM 또는 빈칸","place":"장소 이름 짧게(16자 이내)","cast":"주요 출연진 짧게(20자 이내)","days":["팔찌에 쓸 날짜별 짧은 영문 문구 최대 3개, 예: DAY1 8.2"],"vibe":"rock|chill|cute|cheer 중 하나"}
+여러 날 열리는 음악·야외 페스티벌이면 kind는 festival, 그 밖의 전시·콘서트·뮤지컬·연극·클래식은 ticket이에요. 연도가 안 보이면 ${y}년으로 보세요.`;
+}
+async function takePoster(file){
+  if(reading)return;reading=true;
+  try{
+    const im=await new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=fr.result};fr.onerror=no;fr.readAsDataURL(file)});
+    const s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    draft.poster=c.toDataURL('image/jpeg',.84);draft.palette=extractPalette(c);
+    setStatus('포스터를 읽고 있어요… 보통 10~30초 걸려요');
+    const blob=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.88));
+    let info=null,note='';
+    const sample=await getSample();
+    if(!sample)note='여기서는 포스터 글자를 읽을 수 없어서 색과 이미지만 맞췄어요. 이름·날짜·장소는 직접 적어 주세요';
+    else{try{info=await sample.json(posterPrompt(),{images:blob,modelTier:'default'})}
+      catch(e){note=({not_granted:'포스터 읽기를 허용하지 않아서 색과 이미지만 맞췄어요',rate_limited:'요청이 많아 잠시 쉬어야 해요. 색과 이미지만 먼저 맞췄어요',
+        no_api_key:'사진 읽기 기능이 아직 설정되지 않았어요. 색과 이미지만 맞췄어요',image_rejected:'이 이미지는 읽을 수 없었어요. 다른 사진을 올려 주세요',refused:'포스터를 읽지 못했어요. 이름·날짜·장소를 직접 적어 주세요'})[e&&e.code]||'포스터를 읽다가 문제가 생겼어요. 이름·날짜·장소를 직접 적어 주세요'}}
+    buildFromInfo(info&&typeof info==='object'?info:null);
+    applyPoster();colorize();
+    reading=false;searchOpen=false;delete draft.source;edit(draft.id,true);
+    setStatus(note||'포스터에서 읽은 정보로 만들었어요. 틀린 곳만 고쳐 주세요');if(note)toast(note.split('.')[0]);
+    play();
+  }catch(e){reading=false;setStatus('이미지를 열 수 없었어요. JPG나 PNG 파일을 올려 주세요')}
+}
+function buildFromInfo(info){
+  if(!info){if(!draft.title)draft.title='';return}
+  const str=v=>typeof v==='string'?v.trim():'';
+  const fest=str(info.kind)==='festival'||str(info.category)==='페스티벌';
+  draft.kind=fest?'band':'ticket';
+  const cat=TICKET_CATS.find(c=>c[0]===str(info.category));
+  draft.name=str(info.title).slice(0,24);
+  const cut=str(info.cutout);draft.title=(cut||draft.name).slice(0,20);
+  draft.flag=(str(info.flag)||(fest?'MUSIC FESTIVAL':cat?cat[1]:'CONCERT')).toUpperCase().slice(0,16);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str(info.date)))draft.date=str(info.date);
+  draft.place=str(info.place).slice(0,16);
+  draft.pose={rock:'rock',chill:'peace',cute:'peace',cheer:'five'}[str(info.vibe)]||'rock';
+  draft.paper=fest?'grid':'cream';
+  draft.ticket={...draft.ticket,cat:cat?cat[0]:'콘서트',time:/^\d{1,2}:\d{2}$/.test(str(info.time))?str(info.time):'',cast:str(info.cast).slice(0,20),seat:'',no:'',rating:0,review:''};
+  if(fest){const days=(Array.isArray(info.days)?info.days:[]).map(str).filter(Boolean).slice(0,3);
+    draft.bands=(days.length?days:['1DAY']).map(t=>({id:uid(),color:'#ff5a2e',color2:'#ffd23f',pattern:'stripe',text:t.slice(0,16)}))}
+}
+function colorize(){
+  const pal=draft.palette||[];if(!pal.length)return;
+  const sat=h=>{const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,mx=Math.max(r,g,b),mn=Math.min(r,g,b);return mx?(mx-mn)/mx:0};
+  const mids=pal.filter(c=>lum(c)>.22&&lum(c)<.78).sort((a,b)=>sat(b)-sat(a));
+  draft.letter=mids[0]||LETTERS[0];
+  const other=pal.find(c=>c!==draft.letter)||draft.letter;
+  draft.flagColor=lum(other)>.6?other:shade(other,.55);
+  draft.skin=shade(draft.letter,.62);
+}
+function syncFace(){document.querySelectorAll('#tface .chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===(draft.ticket.face==='info'?'info':'photo')))}
+function flipTicket(){
+  if(FLIP_P!==null)return;
+  const done=()=>{FLIP_P=null;draft.ticket.face=draft.ticket.face==='info'?'photo':'info';syncFace();paint()};
+  if(reduced()){done();return}
+  const t0=performance.now();const step=now=>{FLIP_P=Math.min(1,(now-t0)/700);if(FLIP_P<1&&view==='edit'){paint();requestAnimationFrame(step)}else done()};
+  requestAnimationFrame(step);
+}
+function applyPoster(){
+  const pal=draft.palette||[];if(!pal.length)return;
+  const dom=pal[0],acc=pal[1]||pal[0];
+  const byL=[...pal].sort((a,b)=>lum(b)-lum(a)),light=byL[0];
+  const sat=h=>{const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,mx=Math.max(r,g,b),mn=Math.min(r,g,b);return mx?(mx-mn)/mx:0};
+  const score=c=>Math.abs(lum(light)-lum(c))+sat(c)*.5;
+  let ink=pal.filter(c=>c!==light).sort((a,b)=>score(b)-score(a))[0];
+  if(!ink||Math.abs(lum(light)-lum(ink))<.3)ink=lum(light)>.55?'#17181c':'#ffffff';
+  draft.ticket.color=light;draft.ticket.ink=ink;draft.ticket.accent=pal.find(c=>c!==light&&c!==ink)||ink;draft.ticket.face='photo';
+  if(!draft.bands.length)draft.bands.push({id:uid(),color:dom,color2:acc,pattern:'poster',text:'1DAY'});
+  draft.bands.forEach((b,i)=>{if(i===0){b.pattern='poster';b.color=dom;b.color2=acc}else{b.pattern=i%2?'stripe':'dots';b.color=pal[i%pal.length];b.color2=pal[(i+1)%pal.length]}});
+}
+function clean(){return JSON.parse(JSON.stringify(draft))}
+let playing;
+function play(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){animT=1;drawAll();return}
+  cancelAnimationFrame(playing);const t0=performance.now(),dur=1900;
+  const step=now=>{animT=Math.min(1,(now-t0)/dur);paint();if(animT<1&&view==='edit')playing=requestAnimationFrame(step)};
+  playing=requestAnimationFrame(step);
+}
+
+function bandsUI(){
+  const box=document.getElementById('bands');
+  box.innerHTML=draft.bands.map((b,i)=>`
+  <div class="band" data-i="${i}">
+    <div class="band-head"><canvas width="600" height="68" aria-hidden="true"></canvas><button class="btn ghost" data-rm aria-label="팔찌 ${i+1} 삭제">삭제</button></div>
+    <div class="field"><label for="bt-${b.id}">팔찌 문구</label><input type="text" id="bt-${b.id}" data-text maxlength="16" value="${esc(b.text)}"></div>
+    <div class="mini">바탕색</div>${swatches(posterSet(draft.palette,PALETTE),b.color,'color','바탕색')}
+    <div class="mini">포인트색</div>${swatches(posterSet(draft.palette,PALETTE),b.color2,'color2','포인트색')}
+    <div class="seg" data-act="pattern">${PATTERNS.map(([k,l])=>`<button class="chip" data-v="${k}" aria-pressed="${b.pattern===k}">${l}</button>`).join('')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="file">${b.img?'사진 바꾸기':'실제 팔찌 사진 올리기'}<input type="file" accept="image/*" id="bf-${b.id}" data-img></label>
+      ${b.img?'<button class="btn ghost" data-noimg>사진 빼기</button>':''}</div>
+  </div>`).join('');
+  box.querySelectorAll('.band').forEach(el=>{
+    const b=draft.bands[+el.dataset.i];
+    el.querySelector('[data-rm]').onclick=()=>{draft.bands.splice(+el.dataset.i,1);bandsUI();drawAll()};
+    el.querySelector('[data-text]').oninput=e=>{b.text=e.target.value;drawAll()};
+    ['color','color2','pattern'].forEach(k=>{const btns=el.querySelectorAll(`[data-act=${k}] button`);btns.forEach(btn=>btn.onclick=()=>{b[k]=btn.dataset.v;
+      btns.forEach(x=>x.setAttribute('aria-pressed',x===btn));drawAll()})});
+    el.querySelector('[data-img]').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();
+      fr.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement('canvas');
+        c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);b.img=c.toDataURL('image/jpeg',.82);bandsUI();drawAll()};im.src=fr.result};fr.readAsDataURL(f)};
+    const ni=el.querySelector('[data-noimg]');if(ni)ni.onclick=()=>{delete b.img;bandsUI();drawAll()};
+  });
+  drawBandPreviews();
+}
+function drawBandPreviews(){
+  document.querySelectorAll('#bands .band').forEach(el=>{const b=draft.bands[+el.dataset.i];const c=el.querySelector('canvas');if(!b||!c)return;
+    CUR_POSTER=posterImg(draft);bandFace(c.getContext('2d'),b,c.width,c.height,0)});
+}
+function paint(){const cv=document.getElementById('cv');if(!cv)return;draft.bands.forEach(getImg);render(cv.getContext('2d'),draft,animT)}
+let raf;function drawAll(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{paint();drawBandPreviews()})}
+
+let started=false;const start=()=>{if(!started){started=true;home()}};
+Promise.all(['40px "Black Han Sans"','40px "Jua"','300 40px "Inter"','300 40px "Noto Sans KR"','40px "Gaegu"','700 40px "Gaegu"'].map(f=>document.fonts.load(f).catch(()=>{}))).finally(start);
+setTimeout(start,2500);
+document.fonts.ready.then(()=>{if(started){clearPages();view==='home'?home():drawAll()}});
+</script>
+
+<script type="module" src="/cloud.js"></script>
+</body>
+</html>
