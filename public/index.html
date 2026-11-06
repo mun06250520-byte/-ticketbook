@@ -95,6 +95,19 @@ input[type=text],input[type=date]{width:100%;border:1px solid var(--line);backgr
 .res-t{display:grid;gap:2px;min-width:0}
 .res-t b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .res-t span{font-size:12px;color:var(--muted)}
+.head-actions{display:flex;align-items:center;gap:6px}
+header{gap:8px}
+header .btn{white-space:nowrap}
+.brand{white-space:nowrap;min-width:0}
+@media (max-width:460px){.brand small{display:none}}
+.acct-btn{padding:8px 10px!important;font-size:13px;max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note{background:var(--surface);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:grid;gap:8px;font-size:13px}
+.note.muted{color:var(--muted)}
+.note-actions{display:flex;gap:6px;flex-wrap:wrap}
+.note-actions .btn{padding:9px 12px}
+.switch-row{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.switch-row input{width:22px;height:22px;margin-top:2px;accent-color:var(--accent);flex:none}
+.switch-row span{display:grid;gap:2px}
 .drop.small{padding:16px;margin-top:4px}
 .drop.small b{font-size:14px}
 .drop{display:grid;gap:6px;justify-items:center;text-align:center;border:2px dashed var(--line);border-radius:16px;padding:26px 16px;cursor:pointer;background:var(--sunk);position:relative}
@@ -194,7 +207,10 @@ try{records=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!Array.isArray(records)||!records.length)records=sample();
 else if(records.some(r=>r.id==='ex1')&&!records.some(r=>r.id==='ex3'))records.push(JSON.parse(JSON.stringify(SAMPLE_TICKET)));
 records.forEach(r=>{if(r.kind==='ticket'&&r.ticket)r.ticket.face='photo'});
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(records));return true}catch(e){return false}}
+function persist(){if(cloudOn())return true;localRecords=records;try{localStorage.setItem(KEY,JSON.stringify(records));return true}catch(e){return false}}
+let localRecords=records;
+const cloudOn=()=>!!(window.TBCloud&&window.TBCloud.user);
+const cloudConfigured=()=>!!(window.TBCloud&&window.TBCloud.configured);
 
 let view='home',draft=null,animT=1;
 const imgCache={};
@@ -202,7 +218,7 @@ function getImg(b){
   if(!b.img)return null;
   let c=imgCache[b.id];
   if(c&&c.src===b.img)return c.complete?c:null;
-  c=new Image();c.onload=()=>{if(view==='edit')drawAll();else{clearPages();home()}};c.src=b.img;imgCache[b.id]=c;return null;
+  c=new Image();if(/^https?:/.test(b.img))c.crossOrigin='anonymous';c.onload=()=>{if(view==='edit')drawAll();else{clearPages();home()}};c.src=b.img;imgCache[b.id]=c;return null;
 }
 
 /* ---------- helpers ---------- */
@@ -589,13 +605,15 @@ function home(opts={}){
   if(opts.focus){const i=S.findIndex(s=>s.rec&&s.rec.id===opts.focus);if(i>=0)pageIdx=i}
   pageIdx=Math.max(0,Math.min(pageIdx,S.length-1));
   $app.innerHTML=`
-  <header><div class="brand">TICKET BOOK<small>팔찌·티켓 다이어리</small></div><button class="btn primary" id="new" style="padding:9px 14px">+ 새 기록</button></header>
+  <header><div class="brand">TICKET BOOK<small>팔찌·티켓 다이어리</small></div><div class="head-actions"><span id="acct"></span><button class="btn primary" id="new" style="padding:9px 14px">+ 새 기록</button></div></header>
+  <div id="cloudNote"></div>
   <div class="tabs" role="group" aria-label="보기 방식">
     <button class="chip" data-m="book" aria-pressed="${homeMode==='book'}">공책으로 넘겨보기</button>
     <button class="chip" data-m="crowd" aria-pressed="${homeMode==='crowd'}">다 같이 보기</button></div>
   <div id="stage"></div>`;
   const bar=document.getElementById('bar');if(bar)bar.remove();
   $app.querySelector('#new').onclick=()=>edit(null);
+  renderAccount();
   $app.querySelectorAll('.tabs .chip').forEach(b=>b.onclick=()=>{homeMode=b.dataset.m;try{localStorage.setItem('bandlog.mode',homeMode)}catch(e){}
     $app.querySelectorAll('.tabs .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));mode()});
   mode();
@@ -842,17 +860,22 @@ function renderCrowdNight(ctx,recs,time){
 function crowdUI(){
   const st=document.getElementById('stage');
   st.innerHTML=`<canvas id="crowd" width="${W}" height="${H}" aria-label="저장한 기록마다 한 명씩 손잡고 원을 그리며 춤추는 잔디밭 장면"></canvas>
-  <p class="stage-hint">팔찌를 찬 사람이 내 기록이에요. 누르면 공책의 그 페이지로 넘어가요</p>
+  <p class="stage-hint" id="crowdHint">${cloudConfigured()?'모두가 공개한 기록이 한 사람씩 모여 춤춰요. 누르면 그 기록을 볼 수 있어요':'팔찌를 찬 사람이 내 기록이에요. 누르면 공책의 그 페이지로 넘어가요'}</p>
   <div class="stage-actions"><button class="btn" id="crowdImg">이미지로 보기</button></div>`;
-  const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d'),recs=ordered();
+  const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d');let recs=cloudConfigured()?[]:ordered();
   recs.forEach(r=>r.bands.forEach(getImg));
+  if(cloudConfigured())window.TBCloud.loadPublic().then(list=>{recs.splice(0,recs.length,...list);list.forEach(r=>r.bands.forEach(getImg));
+    if(!list.length){const h=document.getElementById('crowdHint');if(h)h.textContent='아직 공개된 기록이 없어요. 기록을 만들 때 공개로 설정하면 여기에 나와요'}})
+    .catch(err=>{console.error(err);const h=document.getElementById('crowdHint');if(h)h.textContent='공개 기록을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요'});
   const t0=performance.now();
   const loop=now=>{if(view!=='home'||homeMode!=='crowd'||!document.getElementById('crowd'))return;
     renderCrowd(ctx,recs,(now-t0)/1000);if(!reduced())crowdRaf=requestAnimationFrame(loop)};
   crowdRaf=requestAnimationFrame(loop);
   cv.onclick=e=>{const b=cv.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*W,y=(e.clientY-b.top)/b.height*H;
     const hit=[...crowdHits].reverse().find(h=>x>=h.x0&&x<=h.x1&&y>=h.y0&&y<=h.y1);
-    if(hit){homeMode='book';home({focus:hit.id})}};
+    if(!hit)return;
+    if(records.some(r=>r.id===hit.id)){homeMode='book';home({focus:hit.id});return}
+    const other=recs.find(r=>r.id===hit.id);if(other)showRecord(other)};
   st.querySelector('#crowdImg').onclick=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;renderCrowd(c.getContext('2d'),recs,1.2);
     const m=document.createElement('div');m.className='modal';
     m.innerHTML=`<div class="modal-in"><img src="${c.toDataURL('image/png')}" alt="관객석 전체 이미지"><a class="btn primary" href="${c.toDataURL('image/png')}" download="ticketbook-crowd.png" style="text-align:center;text-decoration:none">이미지 저장</a><button class="btn" id="close">닫기</button></div>`;
@@ -933,6 +956,8 @@ function edit(id,keep){
   </section>
   <section class="panel" id="bandPanel"><h2>팔찌 <span class="hint">최대 3개 · 손목부터 채워져요</span></h2><div id="bands" style="display:grid;gap:10px"></div>
     <button class="btn" id="addb">+ 팔찌 추가</button></section>
+  ${cloudOn()?`<section class="panel"><label class="switch-row" for="f-public"><input type="checkbox" id="f-public" ${draft.public?'checked':''}>
+    <span><b>다 같이 보기에 공개</b><span class="hint">켜면 모든 방문자의 '다 같이 보기'에 이 기록이 나와요. 끄면 나만 볼 수 있어요</span></span></label></section>`:''}
   <section class="panel"><h2>왼쪽 페이지</h2>
     <div class="field"><label for="f-title">오려 붙일 글자</label><input type="text" id="f-title" maxlength="20" placeholder="예) PEN/TA/PORT" value="${esc(draft.title)}">
       <span class="hint">/ 를 넣으면 그 자리에서 줄이 바뀌어요</span></div>
@@ -976,6 +1001,7 @@ function edit(id,keep){
     const c=pal[draft.bands.length%(pal.length||1)]||PALETTE[Math.floor(Math.random()*PALETTE.length)];
     draft.bands.push({id:uid(),color:c,color2:pal[1]||'#f4f4f2',pattern:'solid',text:'DAY '+(draft.bands.length+1)});bandsUI();drawAll()};
   $('#play').onclick=play;$('#tflip').onclick=flipTicket;$('#back').onclick=home;
+  const pub=$('#f-public');if(pub)pub.onchange=e=>{draft.public=e.target.checked};
   const fp=$('#f-poster');if(fp)fp.onchange=e=>{const f=e.target.files[0];if(f)takePoster(f)};
   const rs=$('#reSearch');if(rs)rs.onclick=()=>{searchOpen=true;edit(draft.id,true);setTimeout(()=>{const q=document.getElementById('sq');if(q)q.focus()},50)};
   const sf=$('#sform');if(sf)sf.onsubmit=e=>{e.preventDefault();runSearch($('#sq').value)};
@@ -983,7 +1009,10 @@ function edit(id,keep){
   if(drop){drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};drop.ondragleave=()=>drop.classList.remove('over');
     drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))takePoster(f)}}
   if(src)$('#del').onclick=e=>{
-    if(e.target.dataset.armed){records=records.filter(r=>r.id!==src.id);persist();clearPages();toast('기록을 삭제했어요');home()}
+    if(e.target.dataset.armed){
+      if(cloudOn()){e.target.disabled=true;window.TBCloud.remove(src.id).then(()=>{records=records.filter(r=>r.id!==src.id);clearPages();toast('기록을 삭제했어요');home()})
+        .catch(err=>{console.error(err);e.target.disabled=false;toast('삭제하지 못했어요. 다시 눌러 주세요')});return}
+      records=records.filter(r=>r.id!==src.id);persist();clearPages();toast('기록을 삭제했어요');home()}
     else{e.target.dataset.armed=1;e.target.textContent='한 번 더 누르면 삭제';e.target.style.color='var(--accent)'}};
   document.getElementById('export').onclick=()=>{
     const rec=clean(),url=toCanvas(rec,1).toDataURL('image/png');let extra='',extraUrl='';
@@ -992,17 +1021,102 @@ function edit(id,keep){
     const m=document.createElement('div');m.className='modal';
     m.innerHTML=`<div class="modal-in"><img src="${url}" alt="완성된 기록 카드">${extra}<a class="btn primary" href="${url}" download="ticketbook-page.png" style="text-align:center;text-decoration:none">페이지 이미지 저장</a>${extra?`<a class="btn" href="${extraUrl}" download="ticketbook-ticket.png" style="text-align:center;text-decoration:none">티켓 앞뒷면 이미지 저장</a>`:''}<p>1080×1350 · 인스타 4:5 크기예요</p><button class="btn" id="close">닫기</button></div>`;
     document.body.appendChild(m);m.onclick=e=>{if(e.target===m||e.target.id==='close')m.remove()}};
-  document.getElementById('save').onclick=()=>{
+  document.getElementById('save').onclick=async e=>{
     if(reading){toast('포스터를 읽는 중이에요. 잠시만요');return}
-    const rec=clean();delete rec.sample;
-    const i=records.findIndex(r=>r.id===rec.id);
-    if(i>=0)records[i]=rec;else records.push(rec);
-    clearPages();toast(persist()?'공책에 보관했어요':'이 브라우저에서는 저장이 안 돼요. 이미지로 저장해 주세요');homeMode='book';home({focus:rec.id})};
+    const btn=e.currentTarget;if(btn.disabled)return;
+    let rec=clean();delete rec.sample;
+    if(cloudOn()){
+      btn.disabled=true;btn.textContent='저장하는 중…';
+      try{const saved=await window.TBCloud.save(rec);const i=records.findIndex(r=>r.id===rec.id||r.id===saved.id);
+        if(i>=0)records[i]=saved;else records.push(saved);rec=saved;toast('내 계정에 보관했어요')}
+      catch(err){console.error(err);btn.disabled=false;btn.textContent='기록 보관하기';toast('저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요');return}
+    }else{
+      const i=records.findIndex(r=>r.id===rec.id);
+      if(i>=0)records[i]=rec;else records.push(rec);
+      toast(persist()?'공책에 보관했어요':'이 브라우저에서는 저장이 안 돼요. 이미지로 저장해 주세요');
+    }
+    clearPages();homeMode='book';home({focus:rec.id})};
   syncKind();bandsUI();drawAll();
   if(!src&&!keep)setTimeout(play,250);
 }
 
 
+
+
+/* ---------- account & cloud hooks (cloud.js calls these) ---------- */
+let cloudState='off',cloudMsg='';
+const IMPORT_DONE='bandlog.imported.';
+window.TBApp={
+  cloudUnavailable(){cloudState='off';renderAccount()},
+  cloudReady(){if(cloudState==='off')cloudState='ready';renderAccount()},
+  cloudLoading(){cloudState='loading';renderAccount()},
+  cloudError(m){cloudState='ready';cloudMsg=m;renderAccount();toast(m)},
+  useCloud(list){cloudState='ready';records=list;pageIdx=0;clearPages();refreshHome()},
+  useLocal(){cloudState='ready';records=localRecords;pageIdx=0;clearPages();refreshHome()},
+};
+function refreshHome(){if(view==='home')home();else renderAccount()}
+function localImportable(){
+  const C=window.TBCloud;if(!C||!C.user)return[];
+  try{if(localStorage.getItem(IMPORT_DONE+C.user.id))return[]}catch(e){}
+  return(localRecords||[]).filter(r=>!r.sample);
+}
+function renderAccount(){
+  const a=document.getElementById('acct'),note=document.getElementById('cloudNote');if(!a)return;
+  const C=window.TBCloud;
+  if(!C||!C.configured){a.innerHTML='';if(note)note.innerHTML='';return}
+  if(C.user){
+    const name=(C.user.email||'내 계정').split('@')[0];
+    a.innerHTML=`<button class="btn ghost acct-btn" id="acctBtn" type="button" aria-label="내 계정">☁ ${esc(name)}</button>`;
+  }else a.innerHTML=`<button class="btn ghost acct-btn" id="acctBtn" type="button">로그인</button>`;
+  document.getElementById('acctBtn').onclick=openAccount;
+  if(!note)return;
+  const todo=localImportable();
+  if(cloudState==='loading')note.innerHTML=`<div class="note">내 기록을 불러오는 중이에요…</div>`;
+  else if(todo.length)note.innerHTML=`<div class="note"><span>이 브라우저에 저장된 기록 ${todo.length}개가 있어요. 내 계정으로 옮기면 다른 기기에서도 볼 수 있어요.</span>
+    <span class="note-actions"><button class="btn primary" id="importBtn" type="button">기존 기록 가져오기</button><button class="btn ghost" id="importSkip" type="button">다음에</button></span></div>`;
+  else if(!C.user)note.innerHTML=`<div class="note muted">로그인하면 휴대폰이나 다른 컴퓨터에서도 같은 기록을 볼 수 있어요.</div>`;
+  else note.innerHTML='';
+  const ib=document.getElementById('importBtn');if(ib)ib.onclick=()=>importLocalRecords(ib);
+  const sk=document.getElementById('importSkip');if(sk)sk.onclick=()=>{note.innerHTML=''};
+}
+async function importLocalRecords(btn){
+  const C=window.TBCloud,todo=localImportable();if(!todo.length)return;
+  btn.disabled=true;
+  try{
+    const saved=await C.importLocal(todo,(i,n)=>{btn.textContent=`옮기는 중… ${i}/${n}`});
+    try{localStorage.setItem(IMPORT_DONE+C.user.id,String(Date.now()))}catch(e){}
+    records=[...saved,...records];clearPages();toast(`기록 ${saved.length}개를 내 계정으로 옮겼어요`);home();
+  }catch(err){console.error(err);btn.disabled=false;btn.textContent='다시 시도';toast('옮기다가 문제가 생겼어요. 다시 눌러 주세요')}
+}
+function openAccount(){
+  const C=window.TBCloud;if(!C)return;
+  const m=document.createElement('div');m.className='modal';
+  if(C.user){
+    m.innerHTML=`<div class="modal-in"><b style="font-size:16px">내 계정</b><p style="text-align:left">${esc(C.user.email||'')}<br>기록은 이 계정에 저장돼서 다른 기기에서도 똑같이 보여요.</p>
+      <button class="btn" id="logout" type="button">로그아웃</button><button class="btn ghost" id="close" type="button">닫기</button></div>`;
+  }else{
+    m.innerHTML=`<form class="modal-in" id="loginForm"><b style="font-size:16px">이메일로 로그인</b>
+      <p style="text-align:left">이메일을 적으면 로그인 링크를 보내 드려요. 메일의 링크를 누르면 바로 로그인돼요. 처음이면 자동으로 가입돼요.</p>
+      <div class="field"><label for="loginEmail">이메일</label><input type="email" id="loginEmail" required autocomplete="email" placeholder="you@example.com"></div>
+      <button class="btn primary" type="submit" id="loginSend">로그인 링크 받기</button><span class="hint" id="loginMsg" aria-live="polite"></span>
+      <button class="btn ghost" id="close" type="button">닫기</button></form>`;
+  }
+  document.body.appendChild(m);
+  m.onclick=e=>{if(e.target===m||e.target.id==='close')m.remove()};
+  const lo=m.querySelector('#logout');if(lo)lo.onclick=async()=>{lo.disabled=true;await C.signOut();m.remove();toast('로그아웃했어요')};
+  const f=m.querySelector('#loginForm');
+  if(f){const em=m.querySelector('#loginEmail');setTimeout(()=>em.focus(),30);
+    f.onsubmit=async e=>{e.preventDefault();const b=m.querySelector('#loginSend'),msg=m.querySelector('#loginMsg');b.disabled=true;msg.textContent='보내는 중…';
+      try{await C.signIn(em.value.trim());msg.textContent='메일을 보냈어요. 메일함에서 로그인 링크를 눌러 주세요';b.textContent='다시 보내기'}
+      catch(err){console.error(err);msg.textContent=/rate|seconds/i.test(err.message||'')?'잠시 뒤 다시 시도해 주세요':'메일을 보내지 못했어요. 주소를 확인해 주세요'}
+      finally{b.disabled=false}}}
+}
+function showRecord(rec){
+  const url=toCanvas(rec,1).toDataURL('image/jpeg',.92);
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="modal-in"><img src="${url}" alt="${esc(shown(rec))} 기록 페이지"><p>${esc(shown(rec))} · ${esc(fmtDate(rec.date))}</p><button class="btn" id="close" type="button">닫기</button></div>`;
+  document.body.appendChild(m);m.onclick=e=>{if(e.target===m||e.target.id==='close')m.remove()};
+}
 
 /* ---------- search a real show → whole record ---------- */
 let searchOpen=false,lastResults=[];
@@ -1193,5 +1307,6 @@ setTimeout(start,2500);
 document.fonts.ready.then(()=>{if(started){clearPages();view==='home'?home():drawAll()}});
 </script>
 
+<script type="module" src="/cloud.js"></script>
 </body>
 </html>
