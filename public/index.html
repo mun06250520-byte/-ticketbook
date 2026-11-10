@@ -637,7 +637,7 @@ function renderCover(ctx){
 function renderEnd(ctx){
   const{px,py,pw,ph,mid}=spreadBase(ctx,'end','cream');
   ctx.fillStyle='#9a9ca4';ctx.textAlign='center';ctx.font=`700 52px ${F_HAND}`;
-  ctx.fillText('다음 페스티벌을',(px+mid)/2,py+ph/2-30);ctx.fillText('기다리는 중…',(px+mid)/2,py+ph/2+40);
+  ctx.fillText('다음 티켓을',(px+mid)/2,py+ph/2-30);ctx.fillText('기다리는 중...',(px+mid)/2,py+ph/2+40);
   const bx=mid+80,by=py+260,bw=pw/2-160,bh=520;
   ctx.setLineDash([16,12]);ctx.strokeStyle='#b8bac2';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,30);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle='#ff4f79';ctx.font=`700 150px ${F_HAND}`;ctx.fillText('+',bx+bw/2,by+bh/2+20);
