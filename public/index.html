@@ -616,11 +616,10 @@ function renderCover(ctx){
   for(let i=0;i<700;i++){ctx.fillStyle=`rgba(80,50,20,${r()*.12})`;ctx.fillRect(px+r()*(mid-px),py+r()*ph,2,2)}
   drawLetters(ctx,{title:'TICKET/BOOK',letter:'#ff9fb8',id:'c'},rng('cv'),px+60,py+90,mid-px-130,400);
   ctx.save();ctx.translate(px+235,py+730);ctx.rotate(-.04);
-  ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;ctx.fillStyle='#fffdf7';ctx.fillRect(-180,-100,360,200);ctx.shadowColor='transparent';
-  ctx.strokeStyle='rgba(255,79,121,.3)';ctx.lineWidth=2;for(const y of[-20,40]){ctx.beginPath();ctx.moveTo(-160,y);ctx.lineTo(160,y);ctx.stroke()}
-  ctx.fillStyle='#1b1d22';ctx.textAlign='center';ctx.font=`700 44px ${F_HAND}`;ctx.fillText('팔찌·티켓 기록장',0,-34);
-  ctx.font=`36px ${F_HAND}`;ctx.fillStyle='#4a4d57';ctx.fillText(`팔찌 ${nb}개 · 티켓 ${nt}장`,0,28);
-  ctx.fillStyle='rgba(255,214,120,.75)';ctx.save();ctx.translate(0,-100);ctx.rotate(.05);ctx.fillRect(-70,-18,140,36);ctx.restore();
+  ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;ctx.fillStyle='#fffdf7';ctx.fillRect(-180,-55,360,110);ctx.shadowColor='transparent';
+  ctx.strokeStyle='rgba(255,79,121,.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-160,24);ctx.lineTo(160,24);ctx.stroke();
+  ctx.textAlign='center';ctx.font=`700 40px ${F_HAND}`;ctx.fillStyle='#2a2c33';ctx.fillText(`팔찌 ${nb}개 · 티켓 ${nt}장`,0,12);
+  ctx.fillStyle='rgba(255,214,120,.75)';ctx.save();ctx.translate(0,-55);ctx.rotate(.05);ctx.fillRect(-70,-18,140,36);ctx.restore();
   ctx.restore();
   ctx.textAlign='left';ctx.fillStyle='#2a2c33';ctx.font=`700 66px ${F_HAND}`;ctx.fillText('목차',mid+70,py+130);
   ctx.setLineDash([12,8]);ctx.strokeStyle='#ff9fb8';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(mid+70,py+156);ctx.lineTo(px+pw-60,py+156);ctx.stroke();ctx.setLineDash([]);
