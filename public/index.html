@@ -95,6 +95,7 @@ input[type=text],input[type=date]{width:100%;border:1px solid var(--line);backgr
 .res-t{display:grid;gap:2px;min-width:0}
 .res-t b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .res-t span{font-size:12px;color:var(--muted)}
+.tagline{margin:-4px 0 12px;font-size:14px;line-height:1.5;color:var(--muted);text-wrap:balance}
 .head-actions{display:flex;align-items:center;gap:6px}
 header{gap:8px}
 header .btn{white-space:nowrap}
@@ -680,6 +681,7 @@ function home(opts={}){
   pageIdx=Math.max(0,Math.min(pageIdx,S.length-1));
   $app.innerHTML=`
   <header><div class="brand">TICKET BOOK</div><div class="head-actions"><span id="acct"></span><button class="btn primary" id="new" style="padding:9px 14px">+ 새 기록</button></div></header>
+  <p class="tagline">페스티벌, 공연, 전시, 영화, 책까지 원하는 모든 것을 한 곳에 기록하세요</p>
   <div id="cloudNote"></div>
   <div class="tabs" role="group" aria-label="보기 방식">
     <button class="chip" data-m="book" aria-pressed="${homeMode==='book'}">공책으로 넘겨보기</button>
