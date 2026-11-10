@@ -18,7 +18,7 @@
 
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gugi&family=Gamja+Flower&family=Amatic+SC:wght@700&family=Black+Han+Sans&family=Oswald:wght@500;700&family=Do+Hyeon&family=Nanum+Pen+Script&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gugi&family=Gamja+Flower&family=Black+Han+Sans&family=Oswald:wght@500;700&family=Do+Hyeon&family=Nanum+Pen+Script&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
 /* Layout: one phone-width app column; journal-spread preview on top, felt-swatch controls below, sticky action bar */
 :root{
@@ -664,7 +664,6 @@ function renderEnd(ctx){
   ctx.textAlign='left';gutter(ctx,py,ph);ctx.restore();
 }
 /* ---------- 앞표지 (I ♥ ( )) · 뒤표지 (티켓 테두리 로고) ---------- */
-const F_SLAB='"Amatic SC","Nanum Pen Script",cursive';
 function deskBase(ctx,seed){const r=rng(seed);ctx.fillStyle='#e7e4df';ctx.fillRect(0,0,W,H);
   for(let i=0;i<900;i++){ctx.fillStyle=`rgba(90,80,70,${r()*.07})`;ctx.fillRect(r()*W,r()*H,3,1)}return r}
 function heartPath(ctx,cx,cy,s){ctx.beginPath();ctx.moveTo(cx,cy+s*.42);
@@ -680,32 +679,31 @@ function closedBook(ctx,r,x,y,w,h,side){
   g.addColorStop(0,side==='l'?'rgba(0,0,0,.16)':'rgba(0,0,0,0)');g.addColorStop(1,side==='l'?'rgba(0,0,0,0)':'rgba(0,0,0,.16)');ctx.fillStyle=g;ctx.fillRect(sx,y,34,h);
   return()=>ctx.restore();
 }
-function renderFront(ctx,cfg=coverCfg()){
-  const r=deskBase(ctx,'front'),x=W/2,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'l'),cx=x+w/2+8;
-  ctx.fillStyle='#16171b';ctx.textAlign='center';ctx.textBaseline='alphabetic';
-  ctx.strokeStyle='#16171b';ctx.lineWidth=11;ctx.lineCap='round';
-  // 기본 글씨체 같은 반듯한 I, 하트 위끝~아래끝과 같은 높이
-  {const hs=195,hy=y+355,t=hy-hs*.56,bt=hy+hs*.42;ctx.fillStyle='#16171b';ctx.fillRect(cx-100-9,t,18,bt-t)}
-  ctx.save();ctx.fillStyle='#e8202a';heartPath(ctx,cx+75,y+355,195);ctx.fill();ctx.restore();
-  // 괄호 ( ) 와 그 안의 글
-  ctx.textBaseline='middle';const by=y+700;
-  // 기본 글씨체 괄호 (I와 같은 반듯한 글씨)
-  ctx.fillStyle='#16171b';ctx.font=`300px Arial,"Helvetica Neue",Helvetica,sans-serif`;ctx.fillText('(',x+78,by-18);ctx.fillText(')',x+w-78,by-18);ctx.lineCap='butt';
-  const t=(cfg.love||'').trim();
-  if(t){ctx.fillStyle='#16171b';const parts=t.split('/').slice(0,3),lh=parts.length>1?100:0;
-    parts.forEach((ln,i)=>{fitFont(ctx,ln,w-260,parts.length>1?96:130,F_SLAB,'700');ctx.fillText(ln,cx,by+(i-(parts.length-1)/2)*lh)})}
-  ctx.textBaseline='alphabetic';ctx.textAlign='left';done();
+// 표지 그림: 위에서 내려다본 잔디밭, 손잡고 빙글빙글 도는 사람들 (흔들린 사진처럼 잔상)
+function coverArt(ctx,x,y,w,h,side,o){
+  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  const gr=grass(),k=Math.max(w/W,h/H);ctx.drawImage(gr,x+(w-W*k)/2,y+(h-H*k)/2,W*k,H*k);
+  const gen=rng(o.seed),N=o.n,shirts=['#ffd23f','#ff4f79','#7fb6ff','#c7b5ff','#ffffff','#ff8a3d','#22c08a','#b65cff'],hairs=['#2a1d17','#4a3326','#14100e','#7a5230'];
+  const slots=[...Array(N)].map((_,i)=>({k:i,rec:null,shirt:shirts[(i*3+o.off)%8],skin:SKINS[(i*5+o.off)%SKINS.length],hair:hairs[Math.floor(gen()*4)],skirt:gen()<.55,phase:gen()*6}));
+  ctx.translate(x+w*o.cx,y+h*o.cy);ctx.scale(o.s,o.s);const keep=DS;DS=1.3;
+  const t=o.t,spin=.32;
+  for(const[dt,al]of[[1.05,.07],[.9,.1],[.75,.13],[.6,.17],[.45,.22],[.3,.28],[.15,.36]]){try{ctx.filter='blur(7px)'}catch(e){}drawRing(ctx,slots,0,0,o.R,(t-dt)*spin,t-dt,al,false)}
+  try{ctx.filter='blur(1.2px)'}catch(e){}drawRing(ctx,slots,0,0,o.R,t*spin,t,1,true);try{ctx.filter='none'}catch(e){}
+  DS=keep;ctx.restore();ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  const sun=ctx.createRadialGradient(x+w*.9,y,0,x+w*.9,y,w*1.4);sun.addColorStop(0,'rgba(255,240,170,.4)');sun.addColorStop(1,'rgba(255,240,170,0)');ctx.fillStyle=sun;ctx.fillRect(x,y,w,h);
+  // 책등 쪽 그림자
+  const sx=side==='l'?x:x+w-40,g=ctx.createLinearGradient(sx,0,sx+40,0);
+  g.addColorStop(0,side==='l'?'rgba(0,0,0,.28)':'rgba(0,0,0,0)');g.addColorStop(1,side==='l'?'rgba(0,0,0,0)':'rgba(0,0,0,.28)');ctx.fillStyle=g;ctx.fillRect(sx,y,40,h);
+  ctx.restore();
+}
+function renderFront(ctx){
+  const r=deskBase(ctx,'front'),x=W/2,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'l');done();
+  coverArt(ctx,x,y,w,h,'l',{seed:'front',n:9,off:0,cx:.5,cy:.48,s:.44,R:410,t:1.3});
 }
 function renderBack(ctx){
-  const r=deskBase(ctx,'back'),x=40,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'r'),cx=x+w/2-8,cy=y+h/2;
-  const tw=330,th=190;
-  ctx.save();ctx.translate(cx-tw/2,cy-th/2);rollPath(ctx,tw,th);ctx.lineWidth=4;ctx.strokeStyle='#16171b';ctx.stroke();
-  ctx.setLineDash([6,7]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(tw*.74,22);ctx.lineTo(tw*.74,th-22);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle='#16171b';ctx.textAlign='center';ctx.font=`700 52px ${F_TK}`;ctx.fillText('TICKET',tw*.37,th/2-4);ctx.fillText('BOOK',tw*.37,th/2+50);
-  ctx.save();ctx.translate(tw*.87,th/2);ctx.rotate(-Math.PI/2);ctx.font=`500 20px ${F_TK}`;ctx.fillText('ADMIT ONE',0,7);ctx.restore();
-  ctx.restore();
-  ctx.fillStyle='#9a9ca4';ctx.textAlign='center';ctx.font=`500 22px ${F_TK}`;ctx.fillText('KEEP EVERY TICKET',cx,cy+th/2+60);
-  ctx.textAlign='left';done();
+  const r=deskBase(ctx,'back'),x=40,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'r');done();
+  // 뒤표지: 같은 잔디밭, 원의 아랫부분만 보이게
+  coverArt(ctx,x,y,w,h,'r',{seed:'back',n:10,off:3,cx:.55,cy:.04,s:.6,R:430,t:2.1});
 }
 function spreadURL(s){
   const key=s.kind==='rec'?s.rec.id:'__'+s.kind;
@@ -789,12 +787,12 @@ function setHalves(l,r){const hl=document.getElementById('hl'),hr=document.getEl
 function showPage(){
   const S=spreads(),s=S[pageIdx],u=spreadURL(s);setHalves(u,u);
   const n=S.length-4;
-  document.getElementById('pg').textContent=s.kind==='front'?'앞표지 · 누르면 꾸밀 수 있어요':s.kind==='back'?'뒤표지':s.kind==='cover'?'첫 장 · 누르면 꾸밀 수 있어요':s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
+  document.getElementById('pg').textContent=s.kind==='front'?'앞표지':s.kind==='back'?'뒤표지':s.kind==='cover'?'첫 장 · 누르면 꾸밀 수 있어요':s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
   document.getElementById('prev').disabled=pageIdx===0;document.getElementById('next').disabled=pageIdx===S.length-1;
   // warm the neighbours so the flip has its images ready
   setTimeout(()=>{if(S[pageIdx+1])spreadURL(S[pageIdx+1]);if(S[pageIdx-1])spreadURL(S[pageIdx-1])},60);
 }
-function openPage(){const s=spreads()[pageIdx];if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else if(s.kind==='back')flip(-1);else coverEdit()}
+function openPage(){const s=spreads()[pageIdx];if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else if(s.kind==='back')flip(-1);else if(s.kind==='front')flip(1);else coverEdit()}
 function flip(dir){
   if(busy)return;const S=spreads(),ni=pageIdx+dir;if(ni<0||ni>=S.length)return;
   if(reduced()){pageIdx=ni;showPage();return}
@@ -1198,18 +1196,13 @@ function edit(id,keep){
 
 /* ---------- 표지 꾸미기 화면 ---------- */
 let coverDraft=null;
-function paintCover(){const cv=document.getElementById('cv');if(!cv)return;renderCover(cv.getContext('2d'),coverDraft);const f=document.getElementById('cvf');if(f)renderFront(f.getContext('2d'),coverDraft)}
+function paintCover(){const cv=document.getElementById('cv');if(!cv)return;renderCover(cv.getContext('2d'),coverDraft)}
 function coverEdit(){
   view='cover';cancelAnimationFrame(crowdRaf);coverDraft=coverCfg();const ret=pageIdx;
   const sw=(list,cur,act,label)=>`<div class="sw" data-act="${act}">${list.map(([n,c])=>`<button style="background:${c}" data-v="${c}" aria-label="${label} ${n}" title="${n}" aria-pressed="${cur===c}"></button>`).join('')}</div>`;
   $app.innerHTML=`
   <header><button class="btn ghost" id="cvBack">← 공책으로</button><b style="font-size:15px">표지 꾸미기</b></header>
-  <div class="preview"><canvas id="cvf" width="${W}" height="${H}" aria-label="앞표지 미리보기"></canvas></div>
   <div class="preview"><canvas id="cv" width="${W}" height="${H}" aria-label="첫 장 미리보기"></canvas></div>
-  <section class="panel"><h2>앞표지</h2>
-    <div class="field"><label for="c-love">I ♥ ( ) 괄호 안 글</label><input type="text" id="c-love" maxlength="20" value="${esc(coverDraft.love)}" placeholder="예: 락페 / 뮤지컬 / 나">
-      <span class="hint">/ 를 넣으면 줄이 바뀌어요</span></div>
-  </section>
   <section class="panel"><h2>첫 장</h2>
     <div class="field"><label for="c-title">오려 붙일 글자</label><input type="text" id="c-title" maxlength="20" value="${esc(coverDraft.title)}" placeholder="TICKET/BOOK">
       <span class="hint">/ 를 넣으면 그 자리에서 줄이 바뀌어요</span></div>
@@ -1229,7 +1222,7 @@ function coverEdit(){
   bar.innerHTML=`<div class="bar-in"><button class="btn" id="cvReset">처음 표지로</button><button class="btn primary" id="cvSave">표지 저장하기</button></div>`;
   document.body.appendChild(bar);
   const $=q=>$app.querySelector(q);
-  for(const[id,key]of[['#c-title','title'],['#c-label','label'],['#c-toc','toc'],['#c-love','love']])$(id).oninput=e=>{coverDraft[key]=e.target.value;paintCover()};
+  for(const[id,key]of[['#c-title','title'],['#c-label','label'],['#c-toc','toc']])$(id).oninput=e=>{coverDraft[key]=e.target.value;paintCover()};
   $app.querySelectorAll('[data-act]').forEach(g=>{const btns=g.querySelectorAll('button');btns.forEach(b=>b.onclick=()=>{coverDraft[g.dataset.act]=b.dataset.v;btns.forEach(x=>x.setAttribute('aria-pressed',x===b));paintCover()})});
   $('#c-photo').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
     const k=Math.min(1,600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
@@ -1238,7 +1231,7 @@ function coverEdit(){
   $('#c-noPhoto').onclick=e=>{coverDraft.photo='';e.target.hidden=true;$('#c-photoLabel').firstChild.textContent='사진 올리기';paintCover()};
   $('#cvBack').onclick=()=>{pageIdx=ret;home()};
   document.getElementById('cvReset').onclick=()=>{coverDraft={title:'TICKET/BOOK',letter:'#ff9fb8',paper:'#cfae7f',label:'',toc:'목차',photo:'',love:''};coverEdit.refill();};
-  coverEdit.refill=()=>{$('#c-title').value=coverDraft.title;$('#c-love').value='';$('#c-label').value='';$('#c-toc').value=coverDraft.toc;
+  coverEdit.refill=()=>{$('#c-title').value=coverDraft.title;$('#c-label').value='';$('#c-toc').value=coverDraft.toc;
     $app.querySelectorAll('[data-act]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===coverDraft[g.dataset.act])));
     $('#c-noPhoto').hidden=true;$('#c-photoLabel').firstChild.textContent='사진 올리기';paintCover()};
   document.getElementById('cvSave').onclick=()=>{coverSaved={...coverDraft};let ok=true;try{localStorage.setItem(COVER_KEY,JSON.stringify(coverSaved))}catch(e){ok=false}
@@ -1505,7 +1498,7 @@ function paint(){const cv=document.getElementById('cv');if(!cv)return;draft.band
 let raf;function drawAll(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{paint();drawBandPreviews()})}
 
 let started=false;const start=()=>{if(!started){started=true;home()}};
-Promise.all(['40px "Gugi"','700 40px "Amatic SC"','40px "Gamja Flower"','40px "Black Han Sans"','500 40px "Oswald"','700 40px "Oswald"','40px "Do Hyeon"','40px "Nanum Pen Script"','40px "Jua"','300 40px "Inter"','300 40px "Noto Sans KR"','40px "Gaegu"','700 40px "Gaegu"'].map(f=>document.fonts.load(f).catch(()=>{}))).finally(start);
+Promise.all(['40px "Gugi"','40px "Gamja Flower"','40px "Black Han Sans"','500 40px "Oswald"','700 40px "Oswald"','40px "Do Hyeon"','40px "Nanum Pen Script"','40px "Jua"','300 40px "Inter"','300 40px "Noto Sans KR"','40px "Gaegu"','700 40px "Gaegu"'].map(f=>document.fonts.load(f).catch(()=>{}))).finally(start);
 setTimeout(start,2500);
 document.fonts.ready.then(()=>{if(started){clearPages();view==='home'?home():drawAll()}});
 </script>
