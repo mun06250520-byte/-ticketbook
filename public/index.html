@@ -198,7 +198,7 @@ const TICKET_INKS=['#c8202e','#1b2b6b','#17181c','#ffffff','#ff4f79','#1f7a4d'];
 const SAMPLE_TICKET={id:'ex3',sample:true,kind:'ticket',title:'빛의/정원',flag:'EXHIBITION',date:'2026-09-14',place:'예술의전당',pose:'rock',skin:'#f8dc9b',letter:'#7fb6ff',flagColor:'#ff9fb8',paper:'cream',bands:[],
   ticket:{cat:'전시',color:'#f6d05a',ink:'#1b2b6b',accent:'#ff4f79',seat:'일반 1매',no:'NO.0914',time:'14:00',cast:'미디어아트 12인',rating:4,review:'빛이 쏟아지는 방에서 한참 서 있었다',face:'photo'}};
 function sample(){return[
- {id:'ex1',sample:true,title:'PEN/TA/PORT',flag:'ROCK FESTIVAL',date:'2026-08-02',place:'인천 송도',pose:'rock',skin:'#f6c3a3',letter:'#7ccf9a',flagColor:'#8ea0ff',paper:'cream',bands:[
+ {id:'ex1',sample:true,title:'PENTA/PORT',flag:'ROCK FESTIVAL',date:'2026-08-02',place:'인천 송도',pose:'rock',skin:'#f6c3a3',letter:'#7ccf9a',flagColor:'#8ea0ff',paper:'cream',bands:[
   {id:'b1',color:'#ff5a2e',color2:'#ffd23f',pattern:'stripe',text:'1DAY 8.2'}]}
 ]}
 let records;
@@ -206,6 +206,7 @@ try{records=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!Array.isArray(records)||!records.length)records=sample();
 else records=records.filter(r=>!(r.sample&&(r.id==='ex2'||r.id==='ex3')));
 if(!records.length)records=sample();
+records.forEach(r=>{if(r.sample&&r.id==='ex1'&&r.title==='PEN/TA/PORT')r.title='PENTA/PORT'});
 records.forEach(r=>{if(r.kind==='ticket'&&r.ticket)r.ticket.face='photo'});
 function persist(){if(cloudOn())return true;localRecords=records;try{localStorage.setItem(KEY,JSON.stringify(records));return true}catch(e){return false}}
 let localRecords=records;
