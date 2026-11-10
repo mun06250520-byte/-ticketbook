@@ -683,11 +683,13 @@ function closedBook(ctx,r,x,y,w,h,side){
 function renderFront(ctx,cfg=coverCfg()){
   const r=deskBase(ctx,'front'),x=W/2,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'l'),cx=x+w/2+8;
   ctx.fillStyle='#16171b';ctx.textAlign='center';ctx.textBaseline='alphabetic';
-  ctx.font=`250px ${F_SLAB}`;ctx.fillText('I',cx-100,y+440);
+  ctx.strokeStyle='#16171b';ctx.lineWidth=11;ctx.lineCap='round';
+  {const ix=cx-100,t=y+260,b=y+450;ctx.beginPath();ctx.moveTo(ix,t);ctx.lineTo(ix,b);ctx.moveTo(ix-38,t);ctx.lineTo(ix+38,t);ctx.moveTo(ix-38,b);ctx.lineTo(ix+38,b);ctx.stroke()}
   ctx.save();ctx.fillStyle='#e8202a';heartPath(ctx,cx+75,y+355,195);ctx.fill();ctx.restore();
   // 괄호 ( ) 와 그 안의 글
-  ctx.fillStyle='#16171b';ctx.font=`300px ${F_SLAB}`;ctx.textBaseline='middle';
-  const by=y+700;ctx.fillText('(',x+82,by);ctx.fillText(')',x+w-78,by);
+  ctx.textBaseline='middle';const by=y+700;
+  {const ph=150,bow=48;ctx.lineWidth=11;ctx.beginPath();ctx.moveTo(x+105,by-ph);ctx.quadraticCurveTo(x+105-bow*2,by,x+105,by+ph);
+   ctx.moveTo(x+w-105,by-ph);ctx.quadraticCurveTo(x+w-105+bow*2,by,x+w-105,by+ph);ctx.stroke();ctx.lineCap='butt'}
   const t=(cfg.love||'').trim();
   if(t){ctx.fillStyle='#16171b';const parts=t.split('/').slice(0,3),lh=parts.length>1?92:0;
     parts.forEach((ln,i)=>{fitFont(ctx,ln,w-230,parts.length>1?84:110,F_SLAB,'400');ctx.fillText(ln,cx,by+(i-(parts.length-1)/2)*lh)})}
