@@ -880,12 +880,7 @@ function renderCrowd(ctx,recs,time){
   drawRing(ctx,slots,cx,cy,R,time*spin,time,1,true);
   // sunlight
   const sun=ctx.createRadialGradient(W*.85,0,0,W*.85,0,900);sun.addColorStop(0,'rgba(255,240,170,.35)');sun.addColorStop(1,'rgba(255,240,170,0)');ctx.fillStyle=sun;ctx.fillRect(0,0,W,H);
-  // paper tag
-  ctx.save();ctx.translate(W-270,H-140);ctx.rotate(-.05);
-  ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=14;ctx.shadowOffsetY=6;ctx.fillStyle='#fffdf7';ctx.fillRect(-210,-80,420,160);ctx.shadowColor='transparent';
-  ctx.fillStyle='rgba(255,214,120,.8)';ctx.save();ctx.translate(-150,-80);ctx.rotate(-.4);ctx.fillRect(-50,-16,100,32);ctx.restore();
-  ctx.fillStyle='#1b1d22';ctx.textAlign='center';ctx.textBaseline='middle';fitFont(ctx,'Ticket Book List',380,60,F_HAND,'700');ctx.fillText('Ticket Book List',0,4);ctx.textBaseline='alphabetic';
-  ctx.restore();ctx.textAlign='left';
+  ctx.textAlign='left';
 }
 /* outdoor (open-air) festival field */
 function renderCrowdOpenAir(ctx,recs,time){
