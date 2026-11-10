@@ -684,7 +684,8 @@ function renderFront(ctx,cfg=coverCfg()){
   const r=deskBase(ctx,'front'),x=W/2,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'l'),cx=x+w/2+8;
   ctx.fillStyle='#16171b';ctx.textAlign='center';ctx.textBaseline='alphabetic';
   ctx.strokeStyle='#16171b';ctx.lineWidth=11;ctx.lineCap='round';
-  {const ix=cx-100,t=y+260,b=y+450;ctx.beginPath();ctx.moveTo(ix,t);ctx.lineTo(ix,b);ctx.moveTo(ix-38,t);ctx.lineTo(ix+38,t);ctx.moveTo(ix-38,b);ctx.lineTo(ix+38,b);ctx.stroke()}
+  // 기본 글씨체 같은 반듯한 I, 하트 위끝~아래끝과 같은 높이
+  {const hs=195,hy=y+355,t=hy-hs*.56,bt=hy+hs*.42;ctx.fillStyle='#16171b';ctx.fillRect(cx-100-9,t,18,bt-t)}
   ctx.save();ctx.fillStyle='#e8202a';heartPath(ctx,cx+75,y+355,195);ctx.fill();ctx.restore();
   // 괄호 ( ) 와 그 안의 글
   ctx.textBaseline='middle';const by=y+700;
