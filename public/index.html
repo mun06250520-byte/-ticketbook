@@ -160,7 +160,7 @@ const W=1080,H=1350;
 const F_BAND='"Gugi","Black Han Sans","Apple SD Gothic Neo",sans-serif';
 // Pretendard is built from Inter (Latin) + Source Han Sans (Hangul = Noto Sans KR); this pair stands in for Pretendard Light
 const F_PRET='"Pretendard","Inter","Noto Sans KR","Apple SD Gothic Neo",sans-serif';
-const F_TK='"Gugi","Oswald","Do Hyeon","Apple SD Gothic Neo",sans-serif',F_PEN='"Gamja Flower","Nanum Pen Script",cursive';const F_CUTE='"Jua","Gaegu","Apple SD Gothic Neo",sans-serif',F_WRITE='"Nanum Pen Script","Gamja Flower",cursive';const F_HAND='"Gugi","Gaegu","Apple SD Gothic Neo",cursive';
+const F_TK='"Gugi","Oswald","Do Hyeon","Apple SD Gothic Neo",sans-serif',F_PEN='"Gamja Flower","Nanum Pen Script",cursive';const F_GAEGU='"Gaegu","Apple SD Gothic Neo",cursive',F_CUTE='"Jua","Gaegu","Apple SD Gothic Neo",sans-serif',F_WRITE='"Nanum Pen Script","Gamja Flower",cursive';const F_HAND='"Gugi","Gaegu","Apple SD Gothic Neo",cursive';
 const PALETTE=['#ff4f79','#ff5a2e','#2f6bff','#ffd23f','#22c08a','#8b5cf6','#ff8a3d','#111216','#f4f4f2','#7fd6ff'];
 const SKINS=['#f6c3a3','#f7b8b8','#f8dc9b','#b9dcf5','#bfe6cf','#e9d3f5'];
 const LETTERS=['#7ccf9a','#b5e07c','#7fb6ff','#ff9fb8','#ffb85c','#b79bff'];
@@ -386,8 +386,8 @@ function render(ctx,rec,t=1){
   const after=drawLetters(ctx,rec,r2,px+46,py+50,mid-px-90,620);
   drawFlag(ctx,rec,px+46,Math.min(after+30,py+ph-360));
   ctx.fillStyle='#4a4d57';ctx.textAlign='left';ctx.textBaseline='alphabetic';
-  fitFont(ctx,fmtDate(rec.date),400,60,F_WRITE,'400');ctx.fillText(fmtDate(rec.date),px+60,py+ph-92);
-  fitFont(ctx,rec.place||'',400,52,F_WRITE,'400');ctx.fillText(rec.place||'',px+60,py+ph-44);
+  fitFont(ctx,fmtDate(rec.date),400,42,F_GAEGU,'700');ctx.fillText(fmtDate(rec.date),px+60,py+ph-90);
+  fitFont(ctx,rec.place||'',400,36,F_GAEGU);ctx.fillText(rec.place||'',px+60,py+ph-44);
 
   // right page: arm + wristbands
   const cx=mid+250,bottom=py+ph,wy=rec.kind==='ticket'?py+770:py+560;
