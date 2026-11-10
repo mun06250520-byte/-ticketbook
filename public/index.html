@@ -143,7 +143,8 @@ header .btn{white-space:nowrap}
 .face::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.12),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,rgba(0,0,0,.08))}
 .book-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
 .book-nav span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-.book-nav .btn{padding:10px 14px}
+.book-nav .btn{padding:10px 14px;white-space:nowrap;flex:none}
+.book-nav span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
 .book-nav .btn:disabled{opacity:.35;cursor:default}
 .story-btn.btn{display:block;margin:8px auto 0;padding:8px 12px;background:none;color:var(--muted);border:0;font-weight:400;font-size:14px;text-decoration:underline;text-underline-offset:4px}
 .stage-hint{font-size:13px;color:var(--muted);text-align:center;margin:10px 0 0}
@@ -330,24 +331,25 @@ function stitchedGlyph(ctx,ch,cw,s,color){
   ctx.drawImage(c,-cw/2-pad,-base,c.width/k,c.height/k);ctx.restore();
 }
 function drawLetters(ctx,rec,r,x0,y0,maxW,maxH){
-  const lines=titleLines(rec.title);
-  let s=Math.min(200,maxH/lines.length/0.95);
+  const lines=titleLines(rec.title),TR=1.1,LH=1.14; // 자간(TR)·행간(LH)
+  let s=Math.min(200,maxH/lines.length/LH);
   ctx.font=`${s}px ${F_STITCH}`;
-  const widest=Math.max(...lines.map(l=>ctx.measureText(l).width));
+  const lw=l=>[...l].reduce((a,ch,i,arr)=>a+ctx.measureText(ch).width*(i<arr.length-1?TR:1),0);
+  const widest=Math.max(...lines.map(lw));
   if(widest>maxW)s*=maxW/widest;
   ctx.font=`${s}px ${F_STITCH}`;ctx.textBaseline='alphabetic';ctx.textAlign='left';
-  const st=shade(rec.letter,.45);let y=y0+s*.85;
+  let y=y0+s*.85;
   for(const line of lines){
     let x=x0;
     for(const ch of line){
       const cw=ctx.measureText(ch).width;
       ctx.save();ctx.translate(x+cw/2,y+(r()-.5)*s*.08);ctx.rotate((r()-.5)*.14);
       stitchedGlyph(ctx,ch,cw,s,rec.letter);
-      ctx.restore();x+=cw*1.02;
+      ctx.restore();x+=cw*TR;
     }
-    y+=s*.95;
+    y+=s*LH;
   }
-  return y-s*.95+s*.25;
+  return y-s*LH+s*.25;
 }
 function drawFlag(ctx,rec,x,y){
   const w=330,h=104,txt=(rec.flag||'').trim();if(!txt)return;
@@ -644,7 +646,7 @@ function renderCover(ctx,cfg=coverCfg()){
   const show=recs.slice(0,12);
   show.forEach((rc,i)=>{const y=py+130+i*64,[,m,d]=(rc.date||'--').split('-');
     ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.textAlign='left';ctx.fillText(m?`${+m}.${+d}`:'',mid+70,y);
-    ctx.fillStyle='#2a2c33';fitFont(ctx,shown(rc),240,32,F_CUTE,'400');ctx.fillText(shown(rc),mid+170,y);
+    ctx.fillStyle='#2a2c33';{let t=shown(rc);ctx.font=`32px ${F_CUTE}`;if(ctx.measureText(t).width>250){ctx.font=`28px ${F_CUTE}`;while(t.length>1&&ctx.measureText(t+'…').width>250)t=t.slice(0,-1);if(t!==shown(rc))t=t.trimEnd()+'…'}ctx.fillText(t,mid+150,y)}
     ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.textAlign='right';ctx.fillText(String(i+1),px+pw-60,y)});
   ctx.textAlign='left';
   if(!recs.length){ctx.fillStyle='#8a8d96';ctx.font=`34px ${F_CUTE}`;ctx.fillText('아직 채운 페이지가 없어요',mid+70,py+140)}
