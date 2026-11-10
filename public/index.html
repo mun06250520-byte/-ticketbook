@@ -218,7 +218,7 @@ function getImg(b){
   if(!b.img)return null;
   let c=imgCache[b.id];
   if(c&&c.src===b.img)return c.complete?c:null;
-  c=new Image();if(/^https?:/.test(b.img))c.crossOrigin='anonymous';c.onload=()=>{if(view==='edit')drawAll();else{clearPages();home()}};c.src=b.img;imgCache[b.id]=c;return null;
+  c=new Image();if(/^https?:/.test(b.img))c.crossOrigin='anonymous';c.onload=()=>{if(view==='edit')drawAll();else if(view==='cover')paintCover();else{clearPages();home()}};c.src=b.img;imgCache[b.id]=c;return null;
 }
 
 /* ---------- helpers ---------- */
@@ -609,20 +609,39 @@ function spreadBase(ctx,seed,paper){
   return{px,py,pw,ph,mid,r};
 }
 function gutter(ctx,py,ph){const mid=W/2,g=ctx.createLinearGradient(mid-60,0,mid+60,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.5,'rgba(70,50,30,.22)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(mid-60,py,120,ph)}
-function renderCover(ctx){
+/* ---------- cover settings (표지 꾸미기, 이 브라우저에 저장) ---------- */
+const COVER_KEY='bandlog.cover';
+const COVER_PAPERS=[['크라프트','#cfae7f'],['밤하늘','#2b3557'],['딸기우유','#f2b8c6'],['민트','#a8d8c4'],['먹색','#2b2b2e'],['하늘','#a9cdee'],['레몬','#f3dd7a'],['미색','#efe6d2']];
+const COVER_LETTERS=['#ff9fb8','#ffffff','#ffd23f','#7ccf9a','#7fb6ff','#ff6b3d','#b79bff','#1b1d22'];
+let coverSaved=(()=>{try{return JSON.parse(localStorage.getItem(COVER_KEY))||{}}catch(e){return{}}})();
+const coverCfg=()=>({title:'TICKET/BOOK',letter:'#ff9fb8',paper:'#cfae7f',label:'',toc:'목차',photo:'',...coverSaved});
+function renderCover(ctx,cfg=coverCfg()){
   const recs=ordered(),nb=recs.reduce((a,r)=>a+(r.kind==='ticket'?0:r.bands.length),0),nt=recs.filter(r=>r.kind==='ticket').length;
   const{px,py,pw,ph,mid,r}=spreadBase(ctx,'cover','cream');
-  ctx.fillStyle='#cfae7f';ctx.fillRect(px,py,mid-px,ph);
-  for(let i=0;i<700;i++){ctx.fillStyle=`rgba(80,50,20,${r()*.12})`;ctx.fillRect(px+r()*(mid-px),py+r()*ph,2,2)}
-  drawLetters(ctx,{title:'TICKET/BOOK',letter:'#ff9fb8',id:'c'},rng('cv'),px+60,py+90,mid-px-130,400);
+  const dark=lum(cfg.paper)<.45;
+  ctx.fillStyle=cfg.paper;ctx.fillRect(px,py,mid-px,ph);
+  for(let i=0;i<700;i++){ctx.fillStyle=dark?`rgba(255,255,255,${r()*.08})`:`rgba(80,50,20,${r()*.12})`;ctx.fillRect(px+r()*(mid-px),py+r()*ph,2,2)}
+  const photo=cfg.photo?getImg({id:'cover_photo',img:cfg.photo}):null;
+  drawLetters(ctx,{title:cfg.title||'TICKET/BOOK',letter:cfg.letter,id:'c'},rng('cv'),px+60,py+90,mid-px-130,cfg.photo?300:400);
+  if(photo&&photo.naturalWidth){
+    // polaroid with the user's photo
+    const fw=230,fh=250,iw=fw-24,ih=fh-60;
+    ctx.save();ctx.translate(px+250,py+505);ctx.rotate(.05);
+    ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=12;ctx.shadowOffsetY=5;ctx.fillStyle='#fffdf7';ctx.fillRect(-fw/2,-fh/2,fw,fh);ctx.shadowColor='transparent';
+    const sc=Math.max(iw/photo.naturalWidth,ih/photo.naturalHeight),dw=photo.naturalWidth*sc,dh=photo.naturalHeight*sc;
+    ctx.save();ctx.beginPath();ctx.rect(-iw/2,-fh/2+12,iw,ih);ctx.clip();ctx.drawImage(photo,-dw/2,-fh/2+12+(ih-dh)/2,dw,dh);ctx.restore();
+    ctx.fillStyle='rgba(255,214,120,.75)';ctx.save();ctx.translate(0,-fh/2);ctx.rotate(-.08);ctx.fillRect(-45,-14,90,28);ctx.restore();
+    ctx.restore();
+  }
+  const labelText=(cfg.label||'').trim()||`팔찌 ${nb}개 · 티켓 ${nt}장`;
   ctx.save();ctx.translate(px+235,py+730);ctx.rotate(-.04);
   ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;ctx.fillStyle='#fffdf7';ctx.fillRect(-180,-55,360,110);ctx.shadowColor='transparent';
   ctx.strokeStyle='rgba(255,79,121,.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-160,24);ctx.lineTo(160,24);ctx.stroke();
-  ctx.textAlign='center';ctx.font=`400 40px ${F_HAND}`;ctx.fillStyle='#2a2c33';ctx.fillText(`팔찌 ${nb}개 · 티켓 ${nt}장`,0,12);
+  ctx.textAlign='center';fitFont(ctx,labelText,320,40,F_HAND,'400');ctx.fillStyle='#2a2c33';ctx.fillText(labelText,0,12);
   ctx.fillStyle='rgba(255,214,120,.75)';ctx.save();ctx.translate(0,-55);ctx.rotate(.05);ctx.fillRect(-70,-18,140,36);ctx.restore();
   ctx.restore();
-  ctx.textAlign='left';ctx.fillStyle='#2a2c33';ctx.font=`700 66px ${F_HAND}`;ctx.fillText('목차',mid+70,py+130);
-  ctx.setLineDash([12,8]);ctx.strokeStyle='#ff9fb8';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(mid+70,py+156);ctx.lineTo(px+pw-60,py+156);ctx.stroke();ctx.setLineDash([]);
+  ctx.textAlign='left';ctx.fillStyle='#2a2c33';fitFont(ctx,cfg.toc||'목차',pw/2-130,66,F_HAND,'700');ctx.fillText(cfg.toc||'목차',mid+70,py+130);
+  ctx.setLineDash([12,8]);ctx.strokeStyle=lum(cfg.letter)>.92?'#ff9fb8':cfg.letter;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(mid+70,py+156);ctx.lineTo(px+pw-60,py+156);ctx.stroke();ctx.setLineDash([]);
   const show=recs.slice(0,12);
   show.forEach((rc,i)=>{const y=py+230+i*64,[,m,d]=(rc.date||'--').split('-');
     ctx.fillStyle='#8a8d96';ctx.font=`700 34px ${F_HAND}`;ctx.textAlign='left';ctx.fillText(m?`${+m}.${+d}`:'',mid+70,y);
@@ -693,12 +712,12 @@ function setHalves(l,r){const hl=document.getElementById('hl'),hr=document.getEl
 function showPage(){
   const S=spreads(),s=S[pageIdx],u=spreadURL(s);setHalves(u,u);
   const n=S.length-2;
-  document.getElementById('pg').textContent=s.kind==='cover'?'표지 · 목차':s.kind==='end'?'마지막 장':`${pageIdx} / ${n} · ${shown(s.rec)}`;
+  document.getElementById('pg').textContent=s.kind==='cover'?'표지 · 누르면 꾸밀 수 있어요':s.kind==='end'?'마지막 장':`${pageIdx} / ${n} · ${shown(s.rec)}`;
   document.getElementById('prev').disabled=pageIdx===0;document.getElementById('next').disabled=pageIdx===S.length-1;
   // warm the neighbours so the flip has its images ready
   setTimeout(()=>{if(S[pageIdx+1])spreadURL(S[pageIdx+1]);if(S[pageIdx-1])spreadURL(S[pageIdx-1])},60);
 }
-function openPage(){const s=spreads()[pageIdx];if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else flip(1)}
+function openPage(){const s=spreads()[pageIdx];if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else coverEdit()}
 function flip(dir){
   if(busy)return;const S=spreads(),ni=pageIdx+dir;if(ni<0||ni>=S.length)return;
   if(reduced()){pageIdx=ni;showPage();return}
@@ -1103,6 +1122,52 @@ function edit(id,keep){
 
 
 
+
+
+/* ---------- 표지 꾸미기 화면 ---------- */
+let coverDraft=null;
+function paintCover(){const cv=document.getElementById('cv');if(!cv)return;renderCover(cv.getContext('2d'),coverDraft)}
+function coverEdit(){
+  view='cover';cancelAnimationFrame(crowdRaf);coverDraft=coverCfg();
+  const sw=(list,cur,act,label)=>`<div class="sw" data-act="${act}">${list.map(([n,c])=>`<button style="background:${c}" data-v="${c}" aria-label="${label} ${n}" title="${n}" aria-pressed="${cur===c}"></button>`).join('')}</div>`;
+  $app.innerHTML=`
+  <header><button class="btn ghost" id="cvBack">← 공책으로</button><b style="font-size:15px">표지 꾸미기</b></header>
+  <div class="preview"><canvas id="cv" width="${W}" height="${H}" aria-label="표지 미리보기"></canvas></div>
+  <section class="panel"><h2>표지</h2>
+    <div class="field"><label for="c-title">오려 붙일 글자</label><input type="text" id="c-title" maxlength="20" value="${esc(coverDraft.title)}" placeholder="TICKET/BOOK">
+      <span class="hint">/ 를 넣으면 그 자리에서 줄이 바뀌어요</span></div>
+    <div class="mini">글자 색</div>${sw(COVER_LETTERS.map(c=>['',c]),coverDraft.letter,'letter','글자 색')}
+    <div class="mini">표지 색</div>${sw(COVER_PAPERS,coverDraft.paper,'paper','표지 색')}
+    <div class="mini">사진 붙이기</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="file" id="c-photoLabel">${coverDraft.photo?'사진 바꾸기':'사진 올리기'}<input type="file" accept="image/*" id="c-photo"></label>
+      <button class="btn ghost" id="c-noPhoto" ${coverDraft.photo?'':'hidden'}>사진 빼기</button></div>
+  </section>
+  <section class="panel"><h2>라벨과 목차</h2>
+    <div class="field"><label for="c-label">라벨 문구</label><input type="text" id="c-label" maxlength="24" value="${esc(coverDraft.label)}" placeholder="비워 두면 '팔찌 N개 · 티켓 N장'이 자동으로 나와요"></div>
+    <div class="field"><label for="c-toc">목차 제목</label><input type="text" id="c-toc" maxlength="10" value="${esc(coverDraft.toc)}" placeholder="목차"></div>
+  </section>`;
+  let bar=document.getElementById('bar');if(bar)bar.remove();
+  bar=document.createElement('div');bar.className='bar';bar.id='bar';
+  bar.innerHTML=`<div class="bar-in"><button class="btn" id="cvReset">처음 표지로</button><button class="btn primary" id="cvSave">표지 저장하기</button></div>`;
+  document.body.appendChild(bar);
+  const $=q=>$app.querySelector(q);
+  for(const[id,key]of[['#c-title','title'],['#c-label','label'],['#c-toc','toc']])$(id).oninput=e=>{coverDraft[key]=e.target.value;paintCover()};
+  $app.querySelectorAll('[data-act]').forEach(g=>{const btns=g.querySelectorAll('button');btns.forEach(b=>b.onclick=()=>{coverDraft[g.dataset.act]=b.dataset.v;btns.forEach(x=>x.setAttribute('aria-pressed',x===b));paintCover()})});
+  $('#c-photo').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
+    const k=Math.min(1,600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);coverDraft.photo=c.toDataURL('image/jpeg',.84);
+    $('#c-photoLabel').firstChild.textContent='사진 바꾸기';$('#c-noPhoto').hidden=false;paintCover()};im.src=fr.result};fr.readAsDataURL(f)};
+  $('#c-noPhoto').onclick=e=>{coverDraft.photo='';e.target.hidden=true;$('#c-photoLabel').firstChild.textContent='사진 올리기';paintCover()};
+  $('#cvBack').onclick=()=>{pageIdx=0;home()};
+  document.getElementById('cvReset').onclick=()=>{coverDraft={title:'TICKET/BOOK',letter:'#ff9fb8',paper:'#cfae7f',label:'',toc:'목차',photo:''};coverEdit.refill();};
+  coverEdit.refill=()=>{$('#c-title').value=coverDraft.title;$('#c-label').value='';$('#c-toc').value=coverDraft.toc;
+    $app.querySelectorAll('[data-act]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===coverDraft[g.dataset.act])));
+    $('#c-noPhoto').hidden=true;$('#c-photoLabel').firstChild.textContent='사진 올리기';paintCover()};
+  document.getElementById('cvSave').onclick=()=>{coverSaved={...coverDraft};let ok=true;try{localStorage.setItem(COVER_KEY,JSON.stringify(coverSaved))}catch(e){ok=false}
+    clearPages();pageIdx=0;toast(ok?'표지를 저장했어요':'사진이 커서 이 브라우저에 저장하지 못했어요. 다른 사진을 골라 주세요');if(ok)home()};
+  paintCover();
+}
 
 /* ---------- account & cloud hooks (cloud.js calls these) ---------- */
 let cloudState='off',cloudMsg='';
