@@ -18,14 +18,14 @@
 
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Black+Han+Sans&family=Oswald:wght@500;700&family=Do+Hyeon&family=Nanum+Pen+Script&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gugi&family=Gamja+Flower&family=Black+Han+Sans&family=Oswald:wght@500;700&family=Do+Hyeon&family=Nanum+Pen+Script&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
 /* Layout: one phone-width app column; journal-spread preview on top, felt-swatch controls below, sticky action bar */
 :root{
   --bg:#eceef3; --surface:#ffffff; --sunk:#f4f5f8; --ink:#17181c; --muted:#6b6f7b; --line:#dcdfe6;
   --accent:#ff4f79; --accent-ink:#ffffff; --focus:#2f6bff;
   --f-ui:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
-  --f-band:"Black Han Sans","Apple SD Gothic Neo",sans-serif;
+  --f-band:"Gugi","Black Han Sans","Apple SD Gothic Neo",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121317; --surface:#1c1d23; --sunk:#25262d; --ink:#eef0f5; --muted:#9a9eab; --line:#30323b;
@@ -157,10 +157,10 @@ header .btn{white-space:nowrap}
 
 <script>
 const W=1080,H=1350;
-const F_BAND='"Black Han Sans","Apple SD Gothic Neo",sans-serif';
+const F_BAND='"Gugi","Black Han Sans","Apple SD Gothic Neo",sans-serif';
 // Pretendard is built from Inter (Latin) + Source Han Sans (Hangul = Noto Sans KR); this pair stands in for Pretendard Light
 const F_PRET='"Pretendard","Inter","Noto Sans KR","Apple SD Gothic Neo",sans-serif';
-const F_TK='"Oswald","Do Hyeon","Apple SD Gothic Neo",sans-serif',F_PEN='"Nanum Pen Script",cursive';const F_HAND='"Gaegu","Apple SD Gothic Neo",cursive';
+const F_TK='"Gugi","Oswald","Do Hyeon","Apple SD Gothic Neo",sans-serif',F_PEN='"Gamja Flower","Nanum Pen Script",cursive';const F_HAND='"Gugi","Gaegu","Apple SD Gothic Neo",cursive';
 const PALETTE=['#ff4f79','#ff5a2e','#2f6bff','#ffd23f','#22c08a','#8b5cf6','#ff8a3d','#111216','#f4f4f2','#7fd6ff'];
 const SKINS=['#f6c3a3','#f7b8b8','#f8dc9b','#b9dcf5','#bfe6cf','#e9d3f5'];
 const LETTERS=['#7ccf9a','#b5e07c','#7fb6ff','#ff9fb8','#ffb85c','#b79bff'];
@@ -307,7 +307,7 @@ function titleLines(t){
   return out.slice(0,5);
 }
 // embroidered patch letter: gold edge, dark gap, thread-textured fill, stitch line sewn inside
-const F_STITCH='"Jua","Black Han Sans","Apple SD Gothic Neo",sans-serif';
+const F_STITCH='"Gugi","Jua","Black Han Sans","Apple SD Gothic Neo",sans-serif';
 function stitchedGlyph(ctx,ch,cw,s,color){
   const m=ctx.getTransform(),k=Math.max(1,Math.hypot(m.a,m.b)),pad=s*.22,base=s*1.05;
   const c=document.createElement('canvas');c.width=Math.ceil((cw+pad*2)*k);c.height=Math.ceil(s*1.45*k);
@@ -664,7 +664,7 @@ function renderEnd(ctx){
   ctx.textAlign='left';gutter(ctx,py,ph);ctx.restore();
 }
 /* ---------- 앞표지 (I ♥ ( )) · 뒤표지 (티켓 테두리 로고) ---------- */
-const F_SLAB='"Alfa Slab One","Black Han Sans",serif';
+const F_SLAB='"Gamja Flower","Nanum Pen Script",cursive';
 function deskBase(ctx,seed){const r=rng(seed);ctx.fillStyle='#e7e4df';ctx.fillRect(0,0,W,H);
   for(let i=0;i<900;i++){ctx.fillStyle=`rgba(90,80,70,${r()*.07})`;ctx.fillRect(r()*W,r()*H,3,1)}return r}
 function heartPath(ctx,cx,cy,s){ctx.beginPath();ctx.moveTo(cx,cy+s*.42);
@@ -689,8 +689,8 @@ function renderFront(ctx,cfg=coverCfg()){
   ctx.fillStyle='#16171b';ctx.font=`300px ${F_SLAB}`;ctx.textBaseline='middle';
   const by=y+700;ctx.fillText('(',x+82,by);ctx.fillText(')',x+w-78,by);
   const t=(cfg.love||'').trim();
-  if(t){ctx.fillStyle='#16171b';const parts=t.split('/').slice(0,3),lh=parts.length>1?78:0;
-    parts.forEach((ln,i)=>{fitFont(ctx,ln,w-230,parts.length>1?72:96,F_HAND,'700');ctx.fillText(ln,cx,by+(i-(parts.length-1)/2)*lh)})}
+  if(t){ctx.fillStyle='#16171b';const parts=t.split('/').slice(0,3),lh=parts.length>1?92:0;
+    parts.forEach((ln,i)=>{fitFont(ctx,ln,w-230,parts.length>1?84:110,F_SLAB,'400');ctx.fillText(ln,cx,by+(i-(parts.length-1)/2)*lh)})}
   ctx.textBaseline='alphabetic';ctx.textAlign='left';done();
 }
 function renderBack(ctx){
@@ -1507,7 +1507,7 @@ function paint(){const cv=document.getElementById('cv');if(!cv)return;draft.band
 let raf;function drawAll(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{paint();drawBandPreviews()})}
 
 let started=false;const start=()=>{if(!started){started=true;home()}};
-Promise.all(['40px "Alfa Slab One"','40px "Black Han Sans"','500 40px "Oswald"','700 40px "Oswald"','40px "Do Hyeon"','40px "Nanum Pen Script"','40px "Jua"','300 40px "Inter"','300 40px "Noto Sans KR"','40px "Gaegu"','700 40px "Gaegu"'].map(f=>document.fonts.load(f).catch(()=>{}))).finally(start);
+Promise.all(['40px "Gugi"','40px "Gamja Flower"','40px "Black Han Sans"','500 40px "Oswald"','700 40px "Oswald"','40px "Do Hyeon"','40px "Nanum Pen Script"','40px "Jua"','300 40px "Inter"','300 40px "Noto Sans KR"','40px "Gaegu"','700 40px "Gaegu"'].map(f=>document.fonts.load(f).catch(()=>{}))).finally(start);
 setTimeout(start,2500);
 document.fonts.ready.then(()=>{if(started){clearPages();view==='home'?home():drawAll()}});
 </script>
