@@ -393,7 +393,7 @@ function render(ctx,rec,t=1){
   const cx=mid+250,bottom=py+ph,wy=rec.kind==='ticket'?py+770:py+560;
   if(rec.kind==='ticket'){
     // the ticket slides up into a gripping fist; its stub stays hidden inside the hand
-    const k=ease(t/.8),lift=(1-k)*640,tw=290,th=600;
+    const k=ease(t/.8),lift=(1-k)*640,tr=ticketRatio(rec),th=Math.min(600,380/tr),tw=th*tr;
     let face=(rec.ticket&&rec.ticket.face)||'photo',sx=1;
     if(FLIP_P!==null){sx=Math.max(.02,Math.abs(Math.cos(FLIP_P*Math.PI)));if(FLIP_P>.5)face=face==='info'?'photo':'info'}
     ctx.save();ctx.translate(cx-6,wy-150+lift);ctx.rotate(-.05);ctx.scale(sx,1);ctx.translate(-tw/2,-th);
@@ -418,12 +418,12 @@ function ticketPath(ctx,w,h){
   ctx.lineTo(0,h);for(const ny of[h*.9,h*.1]){ctx.lineTo(0,ny+nr);ctx.arc(0,ny,nr,Math.PI/2,-Math.PI/2,true)}
   ctx.closePath();
 }
-function ticketShape(ctx,w,h){ctx.save();ctx.scale(w/250,h/520);ticketPath(ctx,250,520);ctx.restore()}
+function ticketRatio(rec){const po=posterImg(rec);const r=po&&po.naturalWidth?po.naturalWidth/po.naturalHeight:250/520;return Math.max(.45,Math.min(.9,r))}function ticketShape(ctx,w,h){const s=h/520;ctx.save();ctx.scale(s,s);ticketPath(ctx,w/s,520);ctx.restore()}
 function star(ctx,cx,cy,r,fill,col){ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;ctx.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}
   ctx.closePath();ctx.lineWidth=1.4;ctx.strokeStyle=col;ctx.stroke();if(fill){ctx.fillStyle=col;ctx.fill()}ctx.fillStyle=col}
 function drawTicketCard(ctx,rec,face,w,h){
-  const tk=rec.ticket||{},tp=ticketPalette(rec),B=250,HH=520;
-  ctx.save();ctx.scale(w/B,h/HH);ticketPath(ctx,B,HH);ctx.clip();
+  const tk=rec.ticket||{},tp=ticketPalette(rec),HH=520,B=HH*w/h;
+  ctx.save();ctx.scale(h/HH,h/HH);ticketPath(ctx,B,HH);ctx.clip();
   const no=tk.no||('NO.'+(((rec.date||'').replace(/-/g,'').slice(4))||'0001'));
   ctx.textBaseline='alphabetic';
   if(face==='photo'){
@@ -471,9 +471,9 @@ function renderTicketSheet(ctx,rec){
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   ctx.fillStyle=lum(bg)>.6?'#17181c':tp.bg;ctx.textAlign='left';ctx.textBaseline='alphabetic';
   ctx.font=`72px ${F_BAND}`;ctx.fillText('MY TICKET',90,170);fitFont(ctx,shown(rec),900,56,F_BAND);ctx.fillText(shown(rec),90,240);
-  for(const[x,face]of[[90,'photo'],[560,'info']]){ctx.save();ctx.translate(x,320);
-    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;ctx.fillStyle=tp.bg;ticketShape(ctx,430,890);ctx.fill();ctx.shadowColor='transparent';
-    drawTicketCard(ctx,rec,face,430,890);ctx.restore()}
+  const tr=ticketRatio(rec),sh=Math.min(890,430/tr),sw=sh*tr;for(const[x,face]of[[90,'photo'],[560,'info']]){ctx.save();ctx.translate(x+(430-sw)/2,320);
+    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;ctx.fillStyle=tp.bg;ticketShape(ctx,sw,sh);ctx.fill();ctx.shadowColor='transparent';
+    drawTicketCard(ctx,rec,face,sw,sh);ctx.restore()}
 }
 function drawTicket(ctx,rec,w,h){
   const tk=rec.ticket||{},col=tk.color||'#2f6bff',light=lum(col)>.62,ink=light?'#17181c':'#ffffff';
