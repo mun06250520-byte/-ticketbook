@@ -18,14 +18,14 @@
 
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gugi&family=Gamja+Flower&family=Black+Han+Sans&family=Oswald:wght@500;700&family=Do+Hyeon&family=Nanum+Pen+Script&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gugi&family=Gamja+Flower&family=Black+Han+Sans&family=Oswald:wght@500;700&family=Do+Hyeon&family=Nanum+Pen+Script&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500&display=swap">
 <style>
 /* Layout: one phone-width app column; journal-spread preview on top, felt-swatch controls below, sticky action bar */
 :root{
   --bg:#eceef3; --surface:#ffffff; --sunk:#f4f5f8; --ink:#17181c; --muted:#6b6f7b; --line:#dcdfe6;
   --accent:#ff4f79; --accent-ink:#ffffff; --focus:#2f6bff;
-  --f-ui:"Gugi","IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
-  --f-band:"Gugi","Black Han Sans","Apple SD Gothic Neo",sans-serif;
+  --f-ui:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --f-band:"IBM Plex Sans KR","Apple SD Gothic Neo",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121317; --surface:#1c1d23; --sunk:#25262d; --ink:#eef0f5; --muted:#9a9eab; --line:#30323b;
@@ -36,26 +36,26 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{background:var(--bg);color:var(--ink)}
-body{font-family:var(--f-ui);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 120px}
+body{font-family:var(--f-ui);font-weight:300;font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 120px}
 .app{max-width:440px;margin:0 auto}
 header{display:flex;align-items:center;justify-content:space-between;padding-block:18px 10px}
-.brand{font-family:var(--f-band);font-size:24px;letter-spacing:.02em}
+.brand{font-family:var(--f-band);font-size:24px;font-weight:300;letter-spacing:.06em}
 .brand small{font-family:var(--f-ui);font-size:12px;color:var(--muted);margin-left:6px;letter-spacing:0}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--focus);outline-offset:2px}
-.btn{border:0;border-radius:14px;padding:13px 16px;font-weight:700;background:var(--sunk)}
+.btn{border:0;border-radius:14px;padding:13px 16px;font-weight:500;background:var(--sunk)}
 .btn.primary{background:var(--accent);color:var(--accent-ink)}
 .btn.ghost{background:transparent;color:var(--muted);padding:8px 10px}
 .hero{background:var(--surface);border-radius:20px;padding:20px;display:grid;gap:12px;margin-block:6px 18px}
 .hero h1{font-size:21px;line-height:1.35;margin:0;text-wrap:balance}
 .hero p{margin:0;color:var(--muted);font-size:14px}
-.sec-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin:22px 0 10px}
+.sec-title{font-size:13px;font-weight:500;color:var(--muted);letter-spacing:.04em;margin:22px 0 10px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .card{background:var(--surface);border:0;border-radius:16px;padding:8px;text-align:left;display:grid;gap:6px}
 .card img{width:100%;aspect-ratio:4/5;border-radius:10px;display:block;background:var(--sunk)}
 .card b{font-size:14px;padding-inline:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .card span{font-size:12px;color:var(--muted);padding-inline:4px}
-.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--sunk);color:var(--muted);margin-left:4px}
+.pill{display:inline-block;font-size:11px;font-weight:500;padding:1px 7px;border-radius:99px;background:var(--sunk);color:var(--muted);margin-left:4px}
 .preview{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:grid;gap:8px}
 .preview.static{position:static}
 .preview canvas{width:100%;max-width:100%;aspect-ratio:4/5;border-radius:14px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.12)}
@@ -121,14 +121,14 @@ header .btn{white-space:nowrap}
 .poster-row img{width:88px;aspect-ratio:3/4;object-fit:cover;border-radius:10px;flex:none}
 .poster-info{display:grid;gap:6px;min-width:0}
 .poster-info b{font-size:16px;overflow-wrap:anywhere}
-.pill-k{justify-self:start;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--sunk);color:var(--muted)}
+.pill-k{justify-self:start;font-size:12px;font-weight:500;padding:2px 9px;border-radius:99px;background:var(--sunk);color:var(--muted)}
 .modal{position:fixed;inset:0;z-index:30;background:rgba(10,10,14,.72);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
 .modal-in{background:var(--surface);border-radius:18px;padding:14px;max-width:400px;width:100%;display:grid;gap:10px;max-height:88vh;overflow:auto}
 .modal-in img{width:100%;border-radius:10px}
 .modal-in p{margin:0;font-size:13px;color:var(--muted);text-align:center}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:13px;z-index:40}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface);padding:5px;border-radius:14px;margin-block:4px 12px}
-.tabs .chip{border:0;border-radius:10px;padding:9px 6px;font-weight:700;background:transparent;color:var(--muted)}
+.tabs .chip{border:0;border-radius:10px;padding:9px 6px;font-weight:500;background:transparent;color:var(--muted)}
 .tabs .chip[aria-pressed=true]{background:var(--ink);color:var(--bg)}
 .book{position:relative;width:100%;max-width:100%;aspect-ratio:4/5;perspective:2400px;touch-action:pan-y;cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:14px}
 .half,.face{background-size:200% 100%;background-repeat:no-repeat;background-color:#e7e4df}
@@ -145,7 +145,7 @@ header .btn{white-space:nowrap}
 .book-nav span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .book-nav .btn{padding:10px 14px}
 .book-nav .btn:disabled{opacity:.35;cursor:default}
-.story-btn{display:block;margin:12px auto 0;padding:11px 18px;background:linear-gradient(90deg,#f9ce34,#ee2a7b 55%,#6228d7);color:#fff;border:0;font-weight:700}
+.story-btn.btn{display:block;margin:8px auto 0;padding:8px 12px;background:none;color:var(--muted);border:0;font-weight:400;font-size:14px;text-decoration:underline;text-underline-offset:4px}
 .stage-hint{font-size:13px;color:var(--muted);text-align:center;margin:10px 0 0}
 #crowd{width:100%;max-width:100%;aspect-ratio:4/5;border-radius:14px;display:block;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.18)}
 .stage-actions{display:flex;justify-content:center;margin-top:10px}
@@ -160,7 +160,7 @@ const W=1080,H=1350;
 const F_BAND='"Gugi","Black Han Sans","Apple SD Gothic Neo",sans-serif';
 // Pretendard is built from Inter (Latin) + Source Han Sans (Hangul = Noto Sans KR); this pair stands in for Pretendard Light
 const F_PRET='"Pretendard","Inter","Noto Sans KR","Apple SD Gothic Neo",sans-serif';
-const F_TK='"Gugi","Oswald","Do Hyeon","Apple SD Gothic Neo",sans-serif',F_PEN='"Gamja Flower","Nanum Pen Script",cursive';const F_HAND='"Gugi","Gaegu","Apple SD Gothic Neo",cursive';
+const F_TK='"Gugi","Oswald","Do Hyeon","Apple SD Gothic Neo",sans-serif',F_PEN='"Gamja Flower","Nanum Pen Script",cursive';const F_CUTE='"Jua","Gaegu","Apple SD Gothic Neo",sans-serif',F_WRITE='"Nanum Pen Script","Gamja Flower",cursive';const F_HAND='"Gugi","Gaegu","Apple SD Gothic Neo",cursive';
 const PALETTE=['#ff4f79','#ff5a2e','#2f6bff','#ffd23f','#22c08a','#8b5cf6','#ff8a3d','#111216','#f4f4f2','#7fd6ff'];
 const SKINS=['#f6c3a3','#f7b8b8','#f8dc9b','#b9dcf5','#bfe6cf','#e9d3f5'];
 const LETTERS=['#7ccf9a','#b5e07c','#7fb6ff','#ff9fb8','#ffb85c','#b79bff'];
@@ -197,17 +197,15 @@ const TICKET_COLORS=['#f6d05a','#ffe3d3','#f4f4f2','#cfe6ff','#d9f2c4','#ff4f79'
 const TICKET_INKS=['#c8202e','#1b2b6b','#17181c','#ffffff','#ff4f79','#1f7a4d'];
 const SAMPLE_TICKET={id:'ex3',sample:true,kind:'ticket',title:'빛의/정원',flag:'EXHIBITION',date:'2026-09-14',place:'예술의전당',pose:'rock',skin:'#f8dc9b',letter:'#7fb6ff',flagColor:'#ff9fb8',paper:'cream',bands:[],
   ticket:{cat:'전시',color:'#f6d05a',ink:'#1b2b6b',accent:'#ff4f79',seat:'일반 1매',no:'NO.0914',time:'14:00',cast:'미디어아트 12인',rating:4,review:'빛이 쏟아지는 방에서 한참 서 있었다',face:'photo'}};
-function sample(){return[SAMPLE_TICKET,
+function sample(){return[
  {id:'ex1',sample:true,title:'PEN/TA/PORT',flag:'ROCK FESTIVAL',date:'2026-08-02',place:'인천 송도',pose:'rock',skin:'#f6c3a3',letter:'#7ccf9a',flagColor:'#8ea0ff',paper:'cream',bands:[
-  {id:'b1',color:'#ff5a2e',color2:'#ffd23f',pattern:'stripe',text:'1DAY 8.2'}]},
- {id:'ex2',sample:true,title:'서울/재즈/페스',flag:'JAZZ FESTA',date:'2026-05-30',place:'올림픽공원',pose:'peace',skin:'#b9dcf5',letter:'#b79bff',flagColor:'#ffd23f',paper:'grid',bands:[
-  {id:'b2',color:'#8b5cf6',color2:'#7fd6ff',pattern:'holo',text:'SAT 5.30'},
-  {id:'b3',color:'#111216',color2:'#ff8a3d',pattern:'stripe',text:'SUN 5.31'}]}
+  {id:'b1',color:'#ff5a2e',color2:'#ffd23f',pattern:'stripe',text:'1DAY 8.2'}]}
 ]}
 let records;
 try{records=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!Array.isArray(records)||!records.length)records=sample();
-else if(records.some(r=>r.id==='ex1')&&!records.some(r=>r.id==='ex3'))records.push(JSON.parse(JSON.stringify(SAMPLE_TICKET)));
+else records=records.filter(r=>!(r.sample&&(r.id==='ex2'||r.id==='ex3')));
+if(!records.length)records=sample();
 records.forEach(r=>{if(r.kind==='ticket'&&r.ticket)r.ticket.face='photo'});
 function persist(){if(cloudOn())return true;localRecords=records;try{localStorage.setItem(KEY,JSON.stringify(records));return true}catch(e){return false}}
 let localRecords=records;
@@ -388,8 +386,8 @@ function render(ctx,rec,t=1){
   const after=drawLetters(ctx,rec,r2,px+46,py+50,mid-px-90,620);
   drawFlag(ctx,rec,px+46,Math.min(after+30,py+ph-360));
   ctx.fillStyle='#4a4d57';ctx.textAlign='left';ctx.textBaseline='alphabetic';
-  fitFont(ctx,fmtDate(rec.date),400,42,F_HAND,'700');ctx.fillText(fmtDate(rec.date),px+60,py+ph-90);
-  fitFont(ctx,rec.place||'',400,36,F_HAND);ctx.fillText(rec.place||'',px+60,py+ph-44);
+  fitFont(ctx,fmtDate(rec.date),400,60,F_WRITE,'400');ctx.fillText(fmtDate(rec.date),px+60,py+ph-92);
+  fitFont(ctx,rec.place||'',400,52,F_WRITE,'400');ctx.fillText(rec.place||'',px+60,py+ph-44);
 
   // right page: arm + wristbands
   const cx=mid+250,bottom=py+ph,wy=rec.kind==='ticket'?py+770:py+560;
@@ -639,19 +637,19 @@ function renderCover(ctx,cfg=coverCfg()){
   ctx.save();ctx.translate(px+235,py+730);ctx.rotate(-.04);
   ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;ctx.fillStyle='#fffdf7';ctx.fillRect(-180,-55,360,110);ctx.shadowColor='transparent';
   ctx.strokeStyle='rgba(255,79,121,.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-160,24);ctx.lineTo(160,24);ctx.stroke();
-  ctx.textAlign='center';fitFont(ctx,labelText,320,40,F_HAND,'400');ctx.fillStyle='#2a2c33';ctx.fillText(labelText,0,12);
+  ctx.textAlign='center';fitFont(ctx,labelText,300,30,'"Gamja Flower","Nanum Pen Script",cursive','400');ctx.fillStyle='#2a2c33';ctx.fillText(labelText,0,12);
   ctx.fillStyle='rgba(255,214,120,.75)';ctx.save();ctx.translate(0,-55);ctx.rotate(.05);ctx.fillRect(-70,-18,140,36);ctx.restore();
   ctx.restore();
-  ctx.textAlign='left';ctx.fillStyle='#2a2c33';fitFont(ctx,cfg.toc||'목차',pw/2-130,66,F_HAND,'700');ctx.fillText(cfg.toc||'목차',mid+70,py+130);
+  ctx.textAlign='left';ctx.fillStyle='#2a2c33';fitFont(ctx,cfg.toc||'목차',pw/2-130,66,F_CUTE,'400');ctx.fillText(cfg.toc||'목차',mid+70,py+130);
   ctx.setLineDash([12,8]);ctx.strokeStyle=lum(cfg.letter)>.92?'#ff9fb8':cfg.letter;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(mid+70,py+156);ctx.lineTo(px+pw-60,py+156);ctx.stroke();ctx.setLineDash([]);
   const show=recs.slice(0,12);
   show.forEach((rc,i)=>{const y=py+230+i*64,[,m,d]=(rc.date||'--').split('-');
-    ctx.fillStyle='#8a8d96';ctx.font=`700 34px ${F_HAND}`;ctx.textAlign='left';ctx.fillText(m?`${+m}.${+d}`:'',mid+70,y);
-    ctx.fillStyle='#2a2c33';fitFont(ctx,shown(rc),250,36,F_HAND);ctx.fillText(shown(rc),mid+170,y);
-    ctx.fillStyle='#8a8d96';ctx.font=`34px ${F_HAND}`;ctx.textAlign='right';ctx.fillText(String(i+1),px+pw-60,y)});
+    ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.textAlign='left';ctx.fillText(m?`${+m}.${+d}`:'',mid+70,y);
+    ctx.fillStyle='#2a2c33';fitFont(ctx,shown(rc),240,32,F_CUTE,'400');ctx.fillText(shown(rc),mid+170,y);
+    ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.textAlign='right';ctx.fillText(String(i+1),px+pw-60,y)});
   ctx.textAlign='left';
-  if(!recs.length){ctx.fillStyle='#8a8d96';ctx.font=`38px ${F_HAND}`;ctx.fillText('아직 채운 페이지가 없어요',mid+70,py+240)}
-  if(recs.length>12){ctx.fillStyle='#8a8d96';ctx.font=`34px ${F_HAND}`;ctx.fillText(`외 ${recs.length-12}곳`,mid+170,py+230+12*64)}
+  if(!recs.length){ctx.fillStyle='#8a8d96';ctx.font=`34px ${F_CUTE}`;ctx.fillText('아직 채운 페이지가 없어요',mid+70,py+240)}
+  if(recs.length>12){ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.fillText(`외 ${recs.length-12}곳`,mid+170,py+230+12*64)}
   gutter(ctx,py,ph);ctx.restore();
 }
 function renderEnd(ctx){
@@ -787,7 +785,7 @@ function setHalves(l,r){const hl=document.getElementById('hl'),hr=document.getEl
 function showPage(){
   const S=spreads(),s=S[pageIdx],u=spreadURL(s);setHalves(u,u);
   const n=S.length-4;
-  document.getElementById('pg').textContent=s.kind==='front'?'앞표지':s.kind==='back'?'뒤표지':s.kind==='cover'?'첫 장 · 누르면 꾸밀 수 있어요':s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
+  document.getElementById('pg').textContent=s.kind==='front'?'':s.kind==='back'?'':s.kind==='cover'?'누르면 꾸밀 수 있어요':s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
   document.getElementById('prev').disabled=pageIdx===0;document.getElementById('next').disabled=pageIdx===S.length-1;
   // warm the neighbours so the flip has its images ready
   setTimeout(()=>{if(S[pageIdx+1])spreadURL(S[pageIdx+1]);if(S[pageIdx-1])spreadURL(S[pageIdx-1])},60);
@@ -1003,7 +1001,7 @@ function renderCrowdNight(ctx,recs,time){
 function crowdUI(){
   const st=document.getElementById('stage');
   st.innerHTML=`<canvas id="crowd" width="${W}" height="${H}" aria-label="저장한 기록마다 한 명씩 손잡고 원을 그리며 춤추는 잔디밭 장면"></canvas>
-  <p class="stage-hint" id="crowdHint">${cloudConfigured()?'모두가 공개한 기록이 한 사람씩 모여 춤춰요. 누르면 그 기록을 볼 수 있어요':'팔찌를 찬 사람이 내 기록이에요. 누르면 공책의 그 페이지로 넘어가요'}</p>
+  <p class="stage-hint" id="crowdHint">${cloudConfigured()?'모두가 공개한 기록이 한 사람씩 모여 춤춰요<br>누르면 그 기록을 볼 수 있어요':'팔찌를 찬 사람이 내 기록이에요<br>누르면 공책의 그 페이지로 넘어가요'}</p>
   <div class="stage-actions"><button class="btn" id="crowdImg">이미지로 보기</button></div>`;
   const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d');let recs=cloudConfigured()?[]:ordered();
   recs.forEach(r=>r.bands.forEach(getImg));
