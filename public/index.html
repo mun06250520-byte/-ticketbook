@@ -397,7 +397,7 @@ function render(ctx,rec,t=1){
     let face=(rec.ticket&&rec.ticket.face)||'photo',sx=1;
     if(FLIP_P!==null){sx=Math.max(.02,Math.abs(Math.cos(FLIP_P*Math.PI)));if(FLIP_P>.5)face=face==='info'?'photo':'info'}
     ctx.save();ctx.translate(cx-6,wy-150+lift);ctx.rotate(-.05);ctx.scale(sx,1);ctx.translate(-tw/2,-th);
-    ctx.shadowColor='rgba(0,0,0,.28)';ctx.shadowBlur=16;ctx.shadowOffsetY=6;ctx.fillStyle=ticketPalette(rec).bg;ticketShape(ctx,tw,th);ctx.fill();ctx.shadowColor='transparent';
+    ctx.shadowColor='rgba(0,0,0,.28)';ctx.shadowBlur=16;ctx.shadowOffsetY=6;ctx.fillStyle=ticketPalette(rec).bg;ticketShape(ctx,tw,th,rec);ctx.fill();ctx.shadowColor='transparent';
     drawTicketCard(ctx,rec,face,tw,th);ctx.restore();
     drawHand(ctx,rec,cx,wy,bottom,'fist');
   }else{
@@ -407,7 +407,13 @@ function render(ctx,rec,t=1){
   }
   ctx.restore();
 }
-function ticketPalette(rec){const tk=rec.ticket||{},bg=tk.color||'#f6d05a',ink=tk.ink||(lum(bg)>.6?'#c8202e':'#ffffff');return{bg,ink,acc:tk.accent||ink}}
+// 롤 티켓(놀이공원·추첨권 같은 종이 티켓) 색 조합: [이름, 종이색, 인쇄색]
+const ROLL_COLORS=[['연두','#9fca7c','#6d8a4c'],['하늘','#56b9ec','#1d2a8c'],['분홍','#f4b3b8','#b3202f'],['노랑','#f4d468','#c18a22'],['빨강','#e4485b','#3d1650'],
+  ['주황','#f98f57','#d23d22'],['라벤더','#8193d8','#3a4797'],['연보라','#e8a2e8','#3b2a60'],['겨자','#e8b02e','#2a1a0e'],['파랑','#5d7fe2','#2a2a7c']];
+const ticketStyle=rec=>(rec.ticket&&rec.ticket.style==='movie')?'movie':'roll';
+function rollColor(rec){const i=rec.ticket&&Number.isInteger(rec.ticket.roll)?rec.ticket.roll:2;return ROLL_COLORS[(i%ROLL_COLORS.length+ROLL_COLORS.length)%ROLL_COLORS.length]}
+function ticketPalette(rec){if(ticketStyle(rec)==='roll'){const c=rollColor(rec);return{bg:c[1],ink:c[2],acc:c[2]}}
+  const tk=rec.ticket||{},bg=tk.color||'#f6d05a',ink=tk.ink||(lum(bg)>.6?'#c8202e':'#ffffff');return{bg,ink,acc:tk.accent||ink}}
 // scalloped top & bottom edges with side notches, like a torn-off cinema stub
 function ticketPath(ctx,w,h){
   const r=6.5,n=Math.max(4,Math.round(w/22)),s=w/n,nr=8;
@@ -418,10 +424,61 @@ function ticketPath(ctx,w,h){
   ctx.lineTo(0,h);for(const ny of[h*.9,h*.1]){ctx.lineTo(0,ny+nr);ctx.arc(0,ny,nr,Math.PI/2,-Math.PI/2,true)}
   ctx.closePath();
 }
-function ticketRatio(rec){const po=posterImg(rec);const r=po&&po.naturalWidth?po.naturalWidth/po.naturalHeight:250/520;return Math.max(.45,Math.min(.9,r))}function ticketShape(ctx,w,h){const s=h/520;ctx.save();ctx.scale(s,s);ticketPath(ctx,w/s,520);ctx.restore()}
+function ticketRatio(rec){if(ticketStyle(rec)==='roll')return .5;const po=posterImg(rec);const r=po&&po.naturalWidth?po.naturalWidth/po.naturalHeight:250/520;return Math.max(.45,Math.min(.9,r))}function ticketShape(ctx,w,h,rec){const s=h/520;ctx.save();ctx.scale(s,s);(rec&&ticketStyle(rec)==='roll'?rollPath:ticketPath)(ctx,w/s,520);ctx.restore()}
 function star(ctx,cx,cy,r,fill,col){ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;ctx.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}
   ctx.closePath();ctx.lineWidth=1.4;ctx.strokeStyle=col;ctx.stroke();if(fill){ctx.fillStyle=col;ctx.fill()}ctx.fillStyle=col}
-function drawTicketCard(ctx,rec,face,w,h){const F_BAND=F_TK,F_HAND=F_TK;
+// 롤 티켓: 톱니 가장자리, 위아래 번호 칸, 종이 질감. 포스터는 잘리지 않게 가운데 칸 안에 통째로 넣어요.
+function rollPath(ctx,w,h){
+  const t=5,n=Math.max(8,Math.round(w/8)),s=w/n,nr=6,ny=24;
+  ctx.beginPath();ctx.moveTo(0,t);
+  for(let i=0;i<n;i++){ctx.lineTo(s*(i+.5),0);ctx.lineTo(s*(i+1),t)}
+  ctx.lineTo(w,ny-nr);ctx.arc(w,ny,nr,-Math.PI/2,Math.PI/2,true);ctx.lineTo(w,h-ny-nr);ctx.arc(w,h-ny,nr,-Math.PI/2,Math.PI/2,true);ctx.lineTo(w,h-t);
+  for(let i=n-1;i>=0;i--){ctx.lineTo(s*(i+.5),h);ctx.lineTo(s*i,h-t)}
+  ctx.lineTo(0,h-ny+nr);ctx.arc(0,h-ny,nr,Math.PI/2,-Math.PI/2,true);ctx.lineTo(0,ny+nr);ctx.arc(0,ny,nr,Math.PI/2,-Math.PI/2,true);ctx.closePath();
+}
+function drawRollCard(ctx,rec,face,w,h){
+  const tk=rec.ticket||{},[,paper,ink]=rollColor(rec),HH=520,B=HH*w/h,r=rng(rec.id+'roll');
+  ctx.save();ctx.scale(h/HH,h/HH);rollPath(ctx,B,HH);ctx.clip();
+  // paper with a soft fibre texture
+  ctx.fillStyle=paper;ctx.fillRect(0,0,B,HH);
+  const g=ctx.createLinearGradient(0,0,B,HH);g.addColorStop(0,'rgba(255,255,255,.12)');g.addColorStop(1,'rgba(0,0,0,.06)');ctx.fillStyle=g;ctx.fillRect(0,0,B,HH);
+  for(let i=0;i<1400;i++){ctx.fillStyle=r()<.5?'rgba(255,255,255,.16)':'rgba(0,0,0,.07)';ctx.fillRect(r()*B,r()*HH,1+r()*1.6,1+r()*1.6)}
+  // printed frame and number bands
+  const fx=16,fy=26,fw=B-32,fh=HH-52,band=46;
+  ctx.strokeStyle=ink;ctx.lineWidth=2.4;ctx.beginPath();ctx.roundRect(fx,fy,fw,fh,10);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx,fy+band);ctx.lineTo(fx+fw,fy+band);ctx.moveTo(fx,fy+fh-band);ctx.lineTo(fx+fw,fy+fh-band);ctx.stroke();
+  const digits=(String(tk.no||'').replace(/\D/g,'')||String(Math.floor(r()*900000)+100000)).slice(-6).padStart(6,'0');
+  ctx.fillStyle=ink;ctx.textAlign='center';ctx.textBaseline='middle';fitFont(ctx,digits,fw-30,34,F_TK,'500');
+  ctx.save();ctx.translate(B/2,fy+band/2+1);ctx.rotate(Math.PI);ctx.fillText(digits,0,0);ctx.restore();
+  ctx.fillText(digits,B/2,fy+fh-band/2+1);
+  // middle panel
+  const px=fx+8,py=fy+band+8,pw=fw-16,ph=fh-band*2-16;
+  if(face==='photo'){
+    const po=posterImg(rec)||(tk.img?getImg({id:'tk_'+rec.id,img:tk.img}):null);
+    if(po&&po.naturalWidth){const sc=Math.min(pw/po.naturalWidth,ph/po.naturalHeight),iw=po.naturalWidth*sc,ih=po.naturalHeight*sc;
+      ctx.save();ctx.shadowColor='rgba(0,0,0,.18)';ctx.shadowBlur=6;ctx.shadowOffsetY=2;ctx.drawImage(po,px+(pw-iw)/2,py+(ph-ih)/2,iw,ih);ctx.restore()}
+    else{ctx.textBaseline='alphabetic';fitFont(ctx,shown(rec),pw-10,34,F_TK,'700');ctx.fillText(shown(rec),B/2,py+ph/2-10);
+      fitFont(ctx,'포스터를 올리면 여기에 들어가요',pw-10,15,F_TK,'500');ctx.globalAlpha=.75;ctx.fillText('포스터를 올리면 여기에 들어가요',B/2,py+ph/2+20);ctx.globalAlpha=1}
+  }else{
+    ctx.textBaseline='alphabetic';let y=py+22;
+    const cat=(TICKET_CATS.find(c=>c[0]===tk.cat)||['',''])[1];
+    ctx.font=`500 12px ${F_TK}`;ctx.fillText(['ADMIT ONE',cat].filter(Boolean).join(' · '),B/2,y);y+=40;
+    fitFont(ctx,shown(rec),pw-12,36,F_TK,'700');ctx.fillText(shown(rec),B/2,y);y+=14;
+    ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(px+10,y);ctx.lineTo(px+pw-10,y);ctx.stroke();y+=26;
+    const row=(label,val)=>{if(!val)return;ctx.textAlign='left';ctx.font=`500 11px ${F_TK}`;ctx.globalAlpha=.8;ctx.fillText(label,px+8,y);ctx.globalAlpha=1;
+      fitFont(ctx,val,pw-70,16,F_TK,'700');ctx.fillText(val,px+62,y);y+=24};
+    row('DATE',[fmtDate(rec.date),tk.time].filter(Boolean).join('  '));row('VENUE',rec.place);row('CAST',tk.cast);
+    if(tk.rating){ctx.textAlign='left';ctx.font=`500 11px ${F_TK}`;ctx.globalAlpha=.8;ctx.fillText('RATING',px+8,y);ctx.globalAlpha=1;
+      for(let i=0;i<5;i++)star(ctx,px+70+i*20,y-5,7,i<tk.rating,ink);y+=26}
+    if(tk.review){ctx.textAlign='center';ctx.font=`500 14px ${F_TK}`;const chars=[...tk.review],lines=[''];
+      for(const ch of chars){const t2=lines[lines.length-1]+ch;if(ctx.measureText(t2).width>pw-20&&lines.length<2)lines.push(ch);else lines[lines.length-1]=t2}
+      lines.forEach((l,i)=>ctx.fillText(l,B/2,y+i*19));y+=lines.length*19+6}
+    if(tk.seat){ctx.textAlign='right';ctx.font=`500 11px ${F_TK}`;ctx.globalAlpha=.8;ctx.fillText('your seat is',px+pw-10,py+ph-34);ctx.globalAlpha=1;
+      fitFont(ctx,tk.seat,pw-20,34,F_PEN);ctx.fillText(tk.seat,px+pw-10,py+ph-6)}
+  }
+  ctx.restore();ctx.textAlign='left';ctx.textBaseline='alphabetic';
+}
+function drawTicketCard(ctx,rec,face,w,h){if(ticketStyle(rec)==='roll')return drawRollCard(ctx,rec,face,w,h);const F_BAND=F_TK,F_HAND=F_TK;
   const tk=rec.ticket||{},tp=ticketPalette(rec),HH=520,B=HH*w/h;
   ctx.save();ctx.scale(h/HH,h/HH);ticketPath(ctx,B,HH);ctx.clip();
   const no=tk.no||('NO.'+(((rec.date||'').replace(/-/g,'').slice(4))||'0001'));
@@ -472,7 +529,7 @@ function renderTicketSheet(ctx,rec){const F_BAND=F_TK,F_HAND=F_TK;
   ctx.fillStyle=lum(bg)>.6?'#17181c':tp.bg;ctx.textAlign='left';ctx.textBaseline='alphabetic';
   ctx.font=`72px ${F_BAND}`;ctx.fillText('MY TICKET',90,170);fitFont(ctx,shown(rec),900,56,F_BAND);ctx.fillText(shown(rec),90,240);
   const tr=ticketRatio(rec),sh=Math.min(890,430/tr),sw=sh*tr;for(const[x,face]of[[90,'photo'],[560,'info']]){ctx.save();ctx.translate(x+(430-sw)/2,320);
-    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;ctx.fillStyle=tp.bg;ticketShape(ctx,sw,sh);ctx.fill();ctx.shadowColor='transparent';
+    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;ctx.fillStyle=tp.bg;ticketShape(ctx,sw,sh,rec);ctx.fill();ctx.shadowColor='transparent';
     drawTicketCard(ctx,rec,face,sw,sh);ctx.restore()}
 }
 function drawTicket(ctx,rec,w,h){
@@ -677,7 +734,7 @@ function grass(){
 }
 function accessory(rec,side){
   if(!rec)return null;
-  if(rec.kind==='ticket')return side===0?{ticketColor:(rec.ticket&&rec.ticket.color)||'#2f6bff'}:null;
+  if(rec.kind==='ticket')return side===0?{ticketColor:ticketPalette(rec).bg}:null;
   return side===0?rec.bands[0]:(rec.bands[1]||rec.bands[0]);
 }
 function drawRing(ctx,slots,cx,cy,R,a0,t,alpha,detail){
@@ -951,8 +1008,13 @@ function edit(id,keep){
     <div class="field"><label for="f-tno">티켓 번호 (선택)</label><input type="text" id="f-tno" maxlength="12" placeholder="예) NO.0914" value="${esc(draft.ticket.no)}"></div></div>
     <div class="mini">별점</div><div class="seg" id="trate">${[1,2,3,4,5].map(n=>`<button class="chip" data-v="${n}" aria-label="별점 ${n}점" aria-pressed="${(draft.ticket.rating||0)>=n}">★</button>`).join('')}</div>
     <div class="field"><label for="f-review">한줄평</label><input type="text" id="f-review" maxlength="30" placeholder="예) 마지막 곡에서 울었다" value="${esc(draft.ticket.review)}"></div>
+    <div class="mini">티켓 디자인</div><div class="tabs" id="tstyle" style="margin:0;background:var(--sunk)">
+      <button class="chip" data-v="roll" aria-pressed="${ticketStyle(draft)==='roll'}">롤 티켓</button><button class="chip" data-v="movie" aria-pressed="${ticketStyle(draft)==='movie'}">영화 티켓</button></div>
+    <div id="rollColors" ${ticketStyle(draft)==='roll'?'':'hidden'}><div class="mini" style="margin-bottom:6px">종이 색</div>
+      <div class="sw" id="rollSw">${ROLL_COLORS.map((c,i)=>`<button style="background:${c[1]};box-shadow:inset 0 0 0 3px ${c[2]}55" data-v="${i}" aria-label="${c[0]}" title="${c[0]}" aria-pressed="${rollColor(draft)===c}"></button>`).join('')}</div></div>
+    <div id="movieColors" ${ticketStyle(draft)==='movie'?'':'hidden'}>
     <div class="mini">바탕색</div>${swatches(posterSet(pal,TICKET_COLORS),draft.ticket.color,'tcolor','티켓 바탕색')}
-    <div class="mini">글자·선 색</div>${swatches(posterSet(pal,TICKET_INKS),ticketPalette(draft).ink,'tink','티켓 글자 색')}
+    <div class="mini">글자·선 색</div>${swatches(posterSet(pal,TICKET_INKS),ticketPalette(draft).ink,'tink','티켓 글자 색')}</div>
   </section>
   <section class="panel" id="bandPanel"><h2>팔찌 <span class="hint">최대 3개 · 손목부터 채워져요</span></h2><div id="bands" style="display:grid;gap:10px"></div>
     <button class="btn" id="addb">+ 팔찌 추가</button></section>
@@ -980,6 +1042,8 @@ function edit(id,keep){
   for(const k of['skin','letter','flagColor'])pickSel(`.panel > [data-act=${k}] button`,v=>draft[k]=v);
   pickSel('#ticketPanel [data-act=tcolor] button',v=>draft.ticket.color=v);
   pickSel('#ticketPanel [data-act=tink] button',v=>draft.ticket.ink=v);
+  pickSel('#tstyle .chip',v=>{draft.ticket.style=v;$('#rollColors').hidden=v!=='roll';$('#movieColors').hidden=v!=='movie'});
+  pickSel('#rollSw button',v=>draft.ticket.roll=+v);
   const autoFlags=['MUSIC FESTIVAL',...TICKET_CATS.map(c=>c[1])];
   const setFlag=v=>{if(autoFlags.includes((draft.flag||'').trim())||!draft.flag){draft.flag=v;$('#f-flag').value=v}};
   const syncKind=()=>{const tk=draft.kind==='ticket';
