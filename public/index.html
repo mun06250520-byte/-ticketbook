@@ -618,7 +618,7 @@ function renderCover(ctx){
   ctx.save();ctx.translate(px+235,py+730);ctx.rotate(-.04);
   ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;ctx.fillStyle='#fffdf7';ctx.fillRect(-180,-55,360,110);ctx.shadowColor='transparent';
   ctx.strokeStyle='rgba(255,79,121,.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-160,24);ctx.lineTo(160,24);ctx.stroke();
-  ctx.textAlign='center';ctx.font=`700 40px ${F_HAND}`;ctx.fillStyle='#2a2c33';ctx.fillText(`팔찌 ${nb}개 · 티켓 ${nt}장`,0,12);
+  ctx.textAlign='center';ctx.font=`400 40px ${F_HAND}`;ctx.fillStyle='#2a2c33';ctx.fillText(`팔찌 ${nb}개 · 티켓 ${nt}장`,0,12);
   ctx.fillStyle='rgba(255,214,120,.75)';ctx.save();ctx.translate(0,-55);ctx.rotate(.05);ctx.fillRect(-70,-18,140,36);ctx.restore();
   ctx.restore();
   ctx.textAlign='left';ctx.fillStyle='#2a2c33';ctx.font=`700 66px ${F_HAND}`;ctx.fillText('목차',mid+70,py+130);
