@@ -615,7 +615,7 @@ const COVER_KEY='bandlog.cover';
 const COVER_PAPERS=[['크라프트','#cfae7f'],['밤하늘','#2b3557'],['딸기우유','#f2b8c6'],['민트','#a8d8c4'],['먹색','#2b2b2e'],['하늘','#a9cdee'],['레몬','#f3dd7a'],['미색','#efe6d2']];
 const COVER_LETTERS=['#ff9fb8','#ffffff','#ffd23f','#7ccf9a','#7fb6ff','#ff6b3d','#b79bff','#1b1d22'];
 let coverSaved=(()=>{try{return JSON.parse(localStorage.getItem(COVER_KEY))||{}}catch(e){return{}}})();
-const coverCfg=()=>({title:'TICKET/BOOK',letter:'#ff9fb8',paper:'#cfae7f',label:'',toc:'목차',photo:'',love:'',...coverSaved});
+const coverCfg=()=>({title:'TICKET/BOOK',letter:'#7ccf9a',paper:'#cfae7f',label:'',toc:'목차',photo:'',love:'',...coverSaved});
 function renderCover(ctx,cfg=coverCfg()){
   const recs=ordered(),nb=recs.reduce((a,r)=>a+(r.kind==='ticket'?0:r.bands.length),0),nt=recs.filter(r=>r.kind==='ticket').length;
   const{px,py,pw,ph,mid,r}=spreadBase(ctx,'cover','cream');
@@ -641,16 +641,14 @@ function renderCover(ctx,cfg=coverCfg()){
   ctx.textAlign='center';fitFont(ctx,labelText,300,30,'"Gamja Flower","Nanum Pen Script",cursive','400');ctx.fillStyle='#2a2c33';ctx.fillText(labelText,0,12);
   ctx.fillStyle='rgba(255,214,120,.75)';ctx.save();ctx.translate(0,-55);ctx.rotate(.05);ctx.fillRect(-70,-18,140,36);ctx.restore();
   ctx.restore();
-  ctx.textAlign='left';ctx.fillStyle='#2a2c33';fitFont(ctx,cfg.toc||'목차',pw/2-130,66,F_CUTE,'400');ctx.fillText(cfg.toc||'목차',mid+70,py+130);
-  ctx.setLineDash([12,8]);ctx.strokeStyle=lum(cfg.letter)>.92?'#ff9fb8':cfg.letter;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(mid+70,py+156);ctx.lineTo(px+pw-60,py+156);ctx.stroke();ctx.setLineDash([]);
   const show=recs.slice(0,12);
-  show.forEach((rc,i)=>{const y=py+230+i*64,[,m,d]=(rc.date||'--').split('-');
+  show.forEach((rc,i)=>{const y=py+130+i*64,[,m,d]=(rc.date||'--').split('-');
     ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.textAlign='left';ctx.fillText(m?`${+m}.${+d}`:'',mid+70,y);
     ctx.fillStyle='#2a2c33';fitFont(ctx,shown(rc),240,32,F_CUTE,'400');ctx.fillText(shown(rc),mid+170,y);
     ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.textAlign='right';ctx.fillText(String(i+1),px+pw-60,y)});
   ctx.textAlign='left';
-  if(!recs.length){ctx.fillStyle='#8a8d96';ctx.font=`34px ${F_CUTE}`;ctx.fillText('아직 채운 페이지가 없어요',mid+70,py+240)}
-  if(recs.length>12){ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.fillText(`외 ${recs.length-12}곳`,mid+170,py+230+12*64)}
+  if(!recs.length){ctx.fillStyle='#8a8d96';ctx.font=`34px ${F_CUTE}`;ctx.fillText('아직 채운 페이지가 없어요',mid+70,py+140)}
+  if(recs.length>12){ctx.fillStyle='#8a8d96';ctx.font=`32px ${F_CUTE}`;ctx.fillText(`외 ${recs.length-12}곳`,mid+170,py+130+12*64)}
   gutter(ctx,py,ph);ctx.restore();
 }
 function renderEnd(ctx){
@@ -1212,16 +1210,15 @@ function coverEdit(){
       <label class="file" id="c-photoLabel">${coverDraft.photo?'사진 바꾸기':'사진 올리기'}<input type="file" accept="image/*" id="c-photo"></label>
       <button class="btn ghost" id="c-noPhoto" ${coverDraft.photo?'':'hidden'}>사진 빼기</button></div>
   </section>
-  <section class="panel"><h2>라벨과 목차</h2>
+  <section class="panel"><h2>라벨</h2>
     <div class="field"><label for="c-label">라벨 문구</label><input type="text" id="c-label" maxlength="24" value="${esc(coverDraft.label)}" placeholder="비워 두면 '팔찌 N개 · 티켓 N장'이 자동으로 나와요"></div>
-    <div class="field"><label for="c-toc">목차 제목</label><input type="text" id="c-toc" maxlength="10" value="${esc(coverDraft.toc)}" placeholder="목차"></div>
   </section>`;
   let bar=document.getElementById('bar');if(bar)bar.remove();
   bar=document.createElement('div');bar.className='bar';bar.id='bar';
   bar.innerHTML=`<div class="bar-in"><button class="btn" id="cvReset">처음 표지로</button><button class="btn primary" id="cvSave">표지 저장하기</button></div>`;
   document.body.appendChild(bar);
   const $=q=>$app.querySelector(q);
-  for(const[id,key]of[['#c-title','title'],['#c-label','label'],['#c-toc','toc']])$(id).oninput=e=>{coverDraft[key]=e.target.value;paintCover()};
+  for(const[id,key]of[['#c-title','title'],['#c-label','label']])$(id).oninput=e=>{coverDraft[key]=e.target.value;paintCover()};
   $app.querySelectorAll('[data-act]').forEach(g=>{const btns=g.querySelectorAll('button');btns.forEach(b=>b.onclick=()=>{coverDraft[g.dataset.act]=b.dataset.v;btns.forEach(x=>x.setAttribute('aria-pressed',x===b));paintCover()})});
   $('#c-photo').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
     const k=Math.min(1,600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
@@ -1229,8 +1226,8 @@ function coverEdit(){
     $('#c-photoLabel').firstChild.textContent='사진 바꾸기';$('#c-noPhoto').hidden=false;paintCover()};im.src=fr.result};fr.readAsDataURL(f)};
   $('#c-noPhoto').onclick=e=>{coverDraft.photo='';e.target.hidden=true;$('#c-photoLabel').firstChild.textContent='사진 올리기';paintCover()};
   $('#cvBack').onclick=()=>{pageIdx=ret;home()};
-  document.getElementById('cvReset').onclick=()=>{coverDraft={title:'TICKET/BOOK',letter:'#ff9fb8',paper:'#cfae7f',label:'',toc:'목차',photo:'',love:''};coverEdit.refill();};
-  coverEdit.refill=()=>{$('#c-title').value=coverDraft.title;$('#c-label').value='';$('#c-toc').value=coverDraft.toc;
+  document.getElementById('cvReset').onclick=()=>{coverDraft={title:'TICKET/BOOK',letter:'#7ccf9a',paper:'#cfae7f',label:'',toc:'목차',photo:'',love:''};coverEdit.refill();};
+  coverEdit.refill=()=>{$('#c-title').value=coverDraft.title;$('#c-label').value='';
     $app.querySelectorAll('[data-act]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===coverDraft[g.dataset.act])));
     $('#c-noPhoto').hidden=true;$('#c-photoLabel').firstChild.textContent='사진 올리기';paintCover()};
   document.getElementById('cvSave').onclick=()=>{coverSaved={...coverDraft};let ok=true;try{localStorage.setItem(COVER_KEY,JSON.stringify(coverSaved))}catch(e){ok=false}
