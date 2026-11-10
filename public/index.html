@@ -18,7 +18,7 @@
 
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Oswald:wght@500;700&family=Do+Hyeon&family=Nanum+Pen+Script&family=Jua&family=Inter:wght@300&family=Noto+Sans+KR:wght@300&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
 /* Layout: one phone-width app column; journal-spread preview on top, felt-swatch controls below, sticky action bar */
 :root{
@@ -158,7 +158,7 @@ const W=1080,H=1350;
 const F_BAND='"Black Han Sans","Apple SD Gothic Neo",sans-serif';
 // Pretendard is built from Inter (Latin) + Source Han Sans (Hangul = Noto Sans KR); this pair stands in for Pretendard Light
 const F_PRET='"Pretendard","Inter","Noto Sans KR","Apple SD Gothic Neo",sans-serif';
-const F_HAND='"Gaegu","Apple SD Gothic Neo",cursive';
+const F_TK='"Oswald","Do Hyeon","Apple SD Gothic Neo",sans-serif',F_PEN='"Nanum Pen Script",cursive';const F_HAND='"Gaegu","Apple SD Gothic Neo",cursive';
 const PALETTE=['#ff4f79','#ff5a2e','#2f6bff','#ffd23f','#22c08a','#8b5cf6','#ff8a3d','#111216','#f4f4f2','#7fd6ff'];
 const SKINS=['#f6c3a3','#f7b8b8','#f8dc9b','#b9dcf5','#bfe6cf','#e9d3f5'];
 const LETTERS=['#7ccf9a','#b5e07c','#7fb6ff','#ff9fb8','#ffb85c','#b79bff'];
@@ -421,7 +421,7 @@ function ticketPath(ctx,w,h){
 function ticketRatio(rec){const po=posterImg(rec);const r=po&&po.naturalWidth?po.naturalWidth/po.naturalHeight:250/520;return Math.max(.45,Math.min(.9,r))}function ticketShape(ctx,w,h){const s=h/520;ctx.save();ctx.scale(s,s);ticketPath(ctx,w/s,520);ctx.restore()}
 function star(ctx,cx,cy,r,fill,col){ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;ctx.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}
   ctx.closePath();ctx.lineWidth=1.4;ctx.strokeStyle=col;ctx.stroke();if(fill){ctx.fillStyle=col;ctx.fill()}ctx.fillStyle=col}
-function drawTicketCard(ctx,rec,face,w,h){
+function drawTicketCard(ctx,rec,face,w,h){const F_BAND=F_TK,F_HAND=F_TK;
   const tk=rec.ticket||{},tp=ticketPalette(rec),HH=520,B=HH*w/h;
   ctx.save();ctx.scale(h/HH,h/HH);ticketPath(ctx,B,HH);ctx.clip();
   const no=tk.no||('NO.'+(((rec.date||'').replace(/-/g,'').slice(4))||'0001'));
@@ -443,7 +443,7 @@ function drawTicketCard(ctx,rec,face,w,h){
     const hl=y=>{ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke()};
     ctx.font=lab;ctx.textAlign='left';ctx.fillText('공연명',x0+8,50);ctx.textAlign='right';ctx.fillText((rec.date||'').slice(0,4),x1-8,50);
     ctx.textAlign='center';fitFont(ctx,shown(rec),x1-x0-24,40,F_BAND);ctx.fillText(shown(rec),B/2,96);
-    if(rec.flag){ctx.save();ctx.translate(B/2,114);ctx.rotate(-.06);ctx.fillStyle=tp.acc;fitFont(ctx,rec.flag,180,22,F_HAND,'700');ctx.fillText(rec.flag,0,0);ctx.restore();ctx.fillStyle=ink}
+    if(rec.flag){ctx.save();ctx.translate(B/2,114);ctx.rotate(-.06);ctx.fillStyle=tp.acc;fitFont(ctx,rec.flag,190,32,F_PEN);ctx.fillText(rec.flag,0,0);ctx.restore();ctx.fillStyle=ink}
     hl(124);
     const row=(y,l,v)=>{ctx.textAlign='left';ctx.font=lab;ctx.fillText(l,x0+8,y);fitFont(ctx,v||'',x1-x0-72,15,F_HAND,'700');ctx.fillText(v||'',x0+60,y)};
     row(146,'날짜',[fmtDate(rec.date),tk.time].filter(Boolean).join('  '));row(170,'장소',rec.place);row(194,'출연',tk.cast);
@@ -458,7 +458,7 @@ function drawTicketCard(ctx,rec,face,w,h){
     lines.forEach((l,i)=>ctx.fillText(l,x0+8,284+i*20));
     hl(318);ctx.beginPath();ctx.moveTo(x0+78,318);ctx.lineTo(x0+78,364);ctx.stroke();
     ctx.font=lab;ctx.fillText('종류',x0+8,334);ctx.fillText('좌석',x0+86,334);
-    ctx.font=`700 15px ${F_HAND}`;ctx.fillText(tk.cat||'',x0+8,356);fitFont(ctx,tk.seat||'',x1-x0-96,15,F_HAND,'700');ctx.fillText(tk.seat||'',x0+86,356);
+    ctx.font=`700 15px ${F_HAND}`;ctx.fillText(tk.cat||'',x0+8,356);fitFont(ctx,tk.seat||'',x1-x0-96,26,F_PEN);ctx.fillText(tk.seat||'',x0+86,360);
     ctx.setLineDash([5,4]);hl(386);ctx.setLineDash([]);
     ctx.font=`12px ${F_BAND}`;ctx.textAlign='left';ctx.fillText('ADMIT ONE',x0+4,410);ctx.textAlign='right';ctx.fillText((TICKET_CATS.find(c=>c[0]===tk.cat)||['',''])[1],x1-4,410);
     const br=rng(rec.id+'bar');for(let x=x0+4;x<x1-4;){const bw=1+Math.floor(br()*4);ctx.fillRect(x,422,bw,56);x+=bw+2+Math.floor(br()*3)}
@@ -466,7 +466,7 @@ function drawTicketCard(ctx,rec,face,w,h){
   }
   ctx.restore();ctx.textAlign='left';
 }
-function renderTicketSheet(ctx,rec){
+function renderTicketSheet(ctx,rec){const F_BAND=F_TK,F_HAND=F_TK;
   const tp=ticketPalette(rec),bg=lum(tp.ink)>.8?shade(tp.bg,-.4):tp.ink;CUR_POSTER=posterImg(rec);
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   ctx.fillStyle=lum(bg)>.6?'#17181c':tp.bg;ctx.textAlign='left';ctx.textBaseline='alphabetic';
@@ -1302,7 +1302,7 @@ function paint(){const cv=document.getElementById('cv');if(!cv)return;draft.band
 let raf;function drawAll(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{paint();drawBandPreviews()})}
 
 let started=false;const start=()=>{if(!started){started=true;home()}};
-Promise.all(['40px "Black Han Sans"','40px "Jua"','300 40px "Inter"','300 40px "Noto Sans KR"','40px "Gaegu"','700 40px "Gaegu"'].map(f=>document.fonts.load(f).catch(()=>{}))).finally(start);
+Promise.all(['40px "Black Han Sans"','500 40px "Oswald"','700 40px "Oswald"','40px "Do Hyeon"','40px "Nanum Pen Script"','40px "Jua"','300 40px "Inter"','300 40px "Noto Sans KR"','40px "Gaegu"','700 40px "Gaegu"'].map(f=>document.fonts.load(f).catch(()=>{}))).finally(start);
 setTimeout(start,2500);
 document.fonts.ready.then(()=>{if(started){clearPages();view==='home'?home():drawAll()}});
 </script>
