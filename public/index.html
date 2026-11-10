@@ -641,7 +641,6 @@ function renderEnd(ctx){
   const bx=mid+80,by=py+260,bw=pw/2-160,bh=520;
   ctx.setLineDash([16,12]);ctx.strokeStyle='#b8bac2';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,30);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle='#ff4f79';ctx.font=`700 150px ${F_HAND}`;ctx.fillText('+',bx+bw/2,by+bh/2+20);
-  ctx.fillStyle='#4a4d57';ctx.font=`700 46px ${F_HAND}`;ctx.fillText('새 기록 채우기',bx+bw/2,by+bh/2+110);
   ctx.textAlign='left';gutter(ctx,py,ph);ctx.restore();
 }
 function spreadURL(s){
@@ -662,7 +661,7 @@ function home(opts={}){
   if(opts.focus){const i=S.findIndex(s=>s.rec&&s.rec.id===opts.focus);if(i>=0)pageIdx=i}
   pageIdx=Math.max(0,Math.min(pageIdx,S.length-1));
   $app.innerHTML=`
-  <header><div class="brand">TICKET BOOK<small>팔찌·티켓 다이어리</small></div><div class="head-actions"><span id="acct"></span><button class="btn primary" id="new" style="padding:9px 14px">+ 새 기록</button></div></header>
+  <header><div class="brand">TICKET BOOK</div><div class="head-actions"><span id="acct"></span><button class="btn primary" id="new" style="padding:9px 14px">+ 새 기록</button></div></header>
   <div id="cloudNote"></div>
   <div class="tabs" role="group" aria-label="보기 방식">
     <button class="chip" data-m="book" aria-pressed="${homeMode==='book'}">공책으로 넘겨보기</button>
@@ -790,8 +789,7 @@ function renderCrowd(ctx,recs,time){
   ctx.save();ctx.translate(W-270,H-140);ctx.rotate(-.05);
   ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=14;ctx.shadowOffsetY=6;ctx.fillStyle='#fffdf7';ctx.fillRect(-210,-80,420,160);ctx.shadowColor='transparent';
   ctx.fillStyle='rgba(255,214,120,.8)';ctx.save();ctx.translate(-150,-80);ctx.rotate(-.4);ctx.fillRect(-50,-16,100,32);ctx.restore();
-  ctx.fillStyle='#1b1d22';ctx.textAlign='center';fitFont(ctx,'TICKET BOOK FEST',380,54,F_HAND,'700');ctx.fillText('TICKET BOOK FEST',0,-8);
-  ctx.fillStyle='#4a4d57';fitFont(ctx,n?`다녀온 공연·페스티벌 ${n}곳`:'아직 손잡은 기록이 없어요',380,34,F_HAND);ctx.fillText(n?`다녀온 공연·페스티벌 ${n}곳`:'아직 손잡은 기록이 없어요',0,46);
+  ctx.fillStyle='#1b1d22';ctx.textAlign='center';ctx.textBaseline='middle';fitFont(ctx,'Ticket Book List',380,60,F_HAND,'700');ctx.fillText('Ticket Book List',0,4);ctx.textBaseline='alphabetic';
   ctx.restore();ctx.textAlign='left';
 }
 /* outdoor (open-air) festival field */
@@ -943,7 +941,7 @@ function homeOld(){
   view='home';
   const sorted=[...records].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   $app.innerHTML=`
-  <header><div class="brand">TICKET BOOK<small>팔찌·티켓 다이어리</small></div></header>
+  <header><div class="brand">TICKET BOOK</div></header>
   <section class="hero">
     <h1>버리기 아까운 입장 팔찌, 종이 손목에 다시 채워 남겨요</h1>
     <p>손 모양을 고르고 팔찌를 채우면 펼친 다이어리 한 장이 완성돼요. 실제 팔찌 사진도 올릴 수 있어요.</p>
