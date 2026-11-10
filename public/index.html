@@ -689,11 +689,11 @@ function renderFront(ctx,cfg=coverCfg()){
   ctx.save();ctx.fillStyle='#e8202a';heartPath(ctx,cx+75,y+355,195);ctx.fill();ctx.restore();
   // 괄호 ( ) 와 그 안의 글
   ctx.textBaseline='middle';const by=y+700;
-  {const ph=150,bow=48;ctx.lineWidth=11;ctx.beginPath();ctx.moveTo(x+105,by-ph);ctx.quadraticCurveTo(x+105-bow*2,by,x+105,by+ph);
-   ctx.moveTo(x+w-105,by-ph);ctx.quadraticCurveTo(x+w-105+bow*2,by,x+w-105,by+ph);ctx.stroke();ctx.lineCap='butt'}
+  // 기본 글씨체 괄호 (I와 같은 반듯한 글씨)
+  ctx.fillStyle='#16171b';ctx.font=`300px Arial,"Helvetica Neue",Helvetica,sans-serif`;ctx.fillText('(',x+78,by-18);ctx.fillText(')',x+w-78,by-18);ctx.lineCap='butt';
   const t=(cfg.love||'').trim();
   if(t){ctx.fillStyle='#16171b';const parts=t.split('/').slice(0,3),lh=parts.length>1?92:0;
-    parts.forEach((ln,i)=>{fitFont(ctx,ln,w-230,parts.length>1?84:110,F_SLAB,'400');ctx.fillText(ln,cx,by+(i-(parts.length-1)/2)*lh)})}
+    parts.forEach((ln,i)=>{fitFont(ctx,ln,w-260,parts.length>1?84:110,F_SLAB,'400');ctx.fillText(ln,cx,by+(i-(parts.length-1)/2)*lh)})}
   ctx.textBaseline='alphabetic';ctx.textAlign='left';done();
 }
 function renderBack(ctx){
