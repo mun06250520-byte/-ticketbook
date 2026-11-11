@@ -1143,7 +1143,7 @@ function crowdUI(){
   const st=document.getElementById('stage');
   st.innerHTML=`<canvas id="crowd" width="${W}" height="${H}" aria-label="계정마다 한 사람씩 손잡고 원을 그리며 춤추는 잔디밭. 기록이 많을수록 팔찌와 티켓이 늘고 팔이 길어져요"></canvas>
   <p class="stage-hint" id="crowdHint">${cloudConfigured()?'로그인한 사람마다 한 명씩 손잡고 춤춰요<br>기록이 쌓일수록 팔찌와 티켓이 늘고 팔이 길어져요<br>다른 사람을 누르면 그 사람의 노트를 볼 수 있어요':'점선 동그라미 안이 나예요<br>기록이 쌓일수록 팔찌와 티켓이 늘고 팔이 길어져요'}</p>
-  <div class="stage-actions"><button class="btn" id="avEdit">'나' 꾸미기</button><button class="btn" id="crowdImg">동영상으로 보기</button></div>`;
+  <div class="stage-actions"><button class="btn" id="avEdit">내 캐릭터 꾸미기</button><button class="btn" id="crowdImg">동영상으로 보기</button></div>`;
   const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d'),people=[myPerson()];
   ordered().forEach(r=>r.bands.forEach(getImg));
   if(cloudConfigured())window.TBCloud.loadPublic(500).then(list=>{
@@ -1180,8 +1180,8 @@ function avatarEdit(init){
   const chips=(list,cur,act)=>`<div class="chiprow" data-act="${act}">${list.map(([v,n,ic])=>`<button class="chip${ic?' ic':''}" data-v="${v}" aria-pressed="${cur===v}" ${ic?`aria-label="${n}" title="${n}"`:''}>${ic||n}</button>`).join('')}</div>`;
   const sw=(list,cur,act,label)=>`<div class="sw" data-act="${act}">${list.map(c=>`<button style="background:${c}" data-v="${c}" aria-label="${label} ${c}" aria-pressed="${cur===c}"></button>`).join('')}</div>`;
   $app.innerHTML=`
-  <header><button class="btn ghost" id="avBack">← 다 같이 보기로</button><b style="font-size:15px">'나' 꾸미기</b></header>
-  <div class="preview"><canvas id="avc" width="${W}" height="${H}" aria-label="나 미리보기"></canvas></div>
+  <header><button class="btn ghost" id="avBack">← 다 같이 보기로</button><b style="font-size:15px">내 캐릭터 꾸미기</b></header>
+  <div class="preview"><canvas id="avc" width="${W}" height="${H}" aria-label="내 캐릭터 미리보기"></canvas></div>
   <section class="panel"><h2>이름</h2>
     <div class="field"><label for="av-name">다른 사람에게 보일 이름 (선택)</label><input type="text" id="av-name" value="${esc(d.name||'')}" placeholder="비워 두면 이름 없이 보여요"></div></section>
   <section class="panel"><h2>머리</h2>
@@ -1212,7 +1212,7 @@ function avatarEdit(init){
     const btn=e.currentTarget;btn.disabled=true;
     saveJSON(AV_KEY+'.prev',myAvatar);myAvatar={...d};saveJSON(AV_KEY,myAvatar);
     if(cloudOn())try{await window.TBCloud.saveProfile({avatar:myAvatar,cover:coverSaved})}catch(err){console.error(err);toast('계정에 저장하지 못했어요. 다시 눌러 주세요');btn.disabled=false;return}
-    toast('내 사람을 저장했어요');homeMode='crowd';home()};
+    toast('내 캐릭터를 저장했어요');homeMode='crowd';home()};
   if(reduced())renderCrowd(ctx,[myPerson(d)],0,1.9);
 }
 
