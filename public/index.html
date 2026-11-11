@@ -146,7 +146,11 @@ header .btn{white-space:nowrap}
 .book-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
 .book-nav span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .book-nav .btn{padding:10px 14px;white-space:nowrap;flex:none}
-.book-nav select{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:9px 10px;font:inherit;font-size:13px;text-overflow:ellipsis}
+.book-nav select{flex:1;min-width:0;-webkit-appearance:none;appearance:none;border:0;border-radius:14px;padding:10px 34px 10px 14px;font:inherit;font-size:14px;font-weight:500;
+  background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%231f2a10' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+  color:var(--accent-ink);text-align:center;text-align-last:center;text-overflow:ellipsis;cursor:pointer}
+.book-nav select:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.book-nav select option{background:var(--surface);color:var(--ink)}
 .pg-hint{margin-top:6px}.pg-hint:empty{display:none}
 .book-nav .btn:disabled{opacity:.35;cursor:default}
 .story-btn.btn{display:block;margin:8px auto 0;padding:8px 12px;background:none;color:var(--muted);border:0;font-weight:400;font-size:14px;text-decoration:underline;text-underline-offset:4px}
