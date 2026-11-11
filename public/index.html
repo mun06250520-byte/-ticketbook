@@ -199,15 +199,17 @@ const TICKET_INKS=['#c8202e','#1b2b6b','#17181c','#ffffff','#ff4f79','#1f7a4d'];
 const SAMPLE_TICKET={id:'ex3',sample:true,kind:'ticket',title:'빛의/정원',flag:'EXHIBITION',date:'2026-09-14',place:'예술의전당',pose:'rock',skin:'#f8dc9b',letter:'#7fb6ff',flagColor:'#ff9fb8',paper:'cream',bands:[],
   ticket:{cat:'전시',color:'#f6d05a',ink:'#1b2b6b',accent:'#ff4f79',seat:'일반 1매',no:'NO.0914',time:'14:00',cast:'미디어아트 12인',rating:4,review:'빛이 쏟아지는 방에서 한참 서 있었다',face:'photo'}};
 function sample(){return[
- {id:'ex1',sample:true,title:'PENTA/PORT',flag:'ROCK FESTIVAL',date:'2026-08-02',place:'인천 송도',pose:'rock',skin:'#f6c3a3',letter:'#7ccf9a',flagColor:'#8ea0ff',paper:'cream',bands:[
-  {id:'b1',color:'#ff5a2e',color2:'#ffd23f',pattern:'stripe',text:'1DAY 8.2'}]}
+ {id:'ex4',sample:true,kind:'band',title:'2026/DMZ/PEACE/FESTA',name:'2026 DMZ PEACE FESTA',source:'tour',flag:'서로에게 선을 긋기 전에 우리',date:'2026-09-12',place:'교동도 화개정원 /역사공원',pose:'rock',skin:'#b3b9ae',letter:'#36462a',flagColor:'#90918f',paper:'grid',
+  poster:location.origin+'/api/image?url='+encodeURIComponent('https://tong.visitkorea.or.kr/cms/resource/60/4103260_image2_1.jpg'),
+  palette:['#090b06','#fcdc17','#36462a','#647759','#f5feec'],
+  bands:[{id:'dmz1',color:'#090b06',color2:'#fcdc17',pattern:'poster',text:'DAY1 9.12'},{id:'dmz2',color:'#fcdc17',color2:'#36462a',pattern:'stripe',text:'DAY2 9.13'},{id:'dmz3',color:'#36462a',color2:'#647759',pattern:'dots',text:'DAY3 9.14'}],
+  ticket:{cat:'콘서트',color:'#f5feec',ink:'#090b06',accent:'#fcdc17',seat:'',no:'',time:'',cast:'',rating:0,review:'',face:'photo',roll:8}}
 ]}
 let records;
 try{records=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!Array.isArray(records)||!records.length)records=sample();
-else records=records.filter(r=>!(r.sample&&(r.id==='ex2'||r.id==='ex3')));
+else records=records.filter(r=>!['ex1','ex2','ex3'].includes(r.id));
 if(!records.length)records=sample();
-records.forEach(r=>{if(r.sample&&r.id==='ex1'&&r.title==='PEN/TA/PORT')r.title='PENTA/PORT'});
 records.forEach(r=>{if(r.kind==='ticket'&&r.ticket)r.ticket.face='photo'});
 function persist(){if(cloudOn())return true;localRecords=records;try{localStorage.setItem(KEY,JSON.stringify(records));return true}catch(e){return false}}
 let localRecords=records;
