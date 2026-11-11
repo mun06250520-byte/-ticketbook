@@ -746,8 +746,13 @@ function renderFront(ctx,cfg=coverCfg()){
     const g=ctx.createLinearGradient(x,0,x+40,0);g.addColorStop(0,'rgba(0,0,0,.28)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(x,y,40,h);ctx.restore()}
   else coverArt(ctx,x,y,w,h,'l',{seed:'front',n:9,off:0,cx:.5,cy:.48,s:.44,R:410,t:1.3});
 }
-function renderBack(ctx){
+function renderBack(ctx,cfg=coverCfg()){
   const r=deskBase(ctx,'back'),x=40,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'r');done();
+  // 앞표지에 사진을 넣었으면 뒤표지도 같은 사진으로
+  const im=cfg.bg?getImg({id:'cbg_'+cfg.bg.length+cfg.bg.slice(-32),img:cfg.bg}):null;
+  if(im){const sc=Math.max(w/im.naturalWidth,h/im.naturalHeight),dw=im.naturalWidth*sc,dh=im.naturalHeight*sc;
+    ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+    const g=ctx.createLinearGradient(x+w-40,0,x+w,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.28)');ctx.fillStyle=g;ctx.fillRect(x+w-40,y,40,h);ctx.restore();return}
   // 뒤표지: 같은 잔디밭, 원의 아랫부분만 보이게
   coverArt(ctx,x,y,w,h,'r',{seed:'back',n:10,off:3,cx:.55,cy:.04,s:.6,R:430,t:2.1});
 }
