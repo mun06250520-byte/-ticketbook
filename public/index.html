@@ -146,7 +146,8 @@ header .btn{white-space:nowrap}
 .book-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
 .book-nav span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .book-nav .btn{padding:10px 14px;white-space:nowrap;flex:none}
-.book-nav span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.book-nav select{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:9px 10px;font:inherit;font-size:13px;text-overflow:ellipsis}
+.pg-hint{margin-top:6px}.pg-hint:empty{display:none}
 .book-nav .btn:disabled{opacity:.35;cursor:default}
 .story-btn.btn{display:block;margin:8px auto 0;padding:8px 12px;background:none;color:var(--muted);border:0;font-weight:400;font-size:14px;text-decoration:underline;text-underline-offset:4px}
 .stage-hint{font-size:13px;color:var(--muted);text-align:center;margin:10px 0 0}
@@ -795,15 +796,16 @@ function mode(){cancelAnimationFrame(crowdRaf);homeMode==='crowd'?crowdUI():book
 function bookUI(){
   const st=document.getElementById('stage');
   st.innerHTML=`<div class="book" id="book" tabindex="0" role="button" aria-label="기록 공책. 좌우로 넘기고, 누르면 그 페이지를 열어요"><div class="half l" id="hl"></div><div class="half r" id="hr"></div></div>
-  <div class="book-nav"><button class="btn" id="prev">‹ 이전 장</button><span id="pg"></span><button class="btn" id="next">다음 장 ›</button></div>
+  <div class="book-nav"><button class="btn" id="prev">‹ 이전 장</button><select id="jump" aria-label="페이지 바로가기"></select><button class="btn" id="next">다음 장 ›</button></div>
+  <p class="stage-hint pg-hint" id="pg"></p>
   <p class="stage-hint">${viewing?'밀어서 넘겨 보세요. 페이지를 누르면 크게 볼 수 있어요':'밀어서 넘기고, 페이지를 누르면 수정할 수 있어요'}</p>
   <button class="btn story-btn" id="story">이미지로 공유하기</button>`;
   const book=st.querySelector('#book');
-  st.querySelector('#story').onclick=sharePage;st.querySelector('#prev').onclick=()=>flip(-1);st.querySelector('#next').onclick=()=>flip(1);
+  st.querySelector('#story').onclick=sharePage;st.querySelector('#jump').onchange=e=>goPage(+e.target.value);st.querySelector('#prev').onclick=()=>flip(-1);st.querySelector('#next').onclick=()=>flip(1);
   let sx=null,sy=0;
   book.onpointerdown=e=>{sx=e.clientX;sy=e.clientY};
   book.onpointerup=e=>{if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
-    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))flip(dx<0?1:-1);else if(Math.abs(dx)<8&&Math.abs(dy)<8)openPage()};
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))flip(dx<0?1:-1);else if(Math.abs(dx)<8&&Math.abs(dy)<8)openPage(e)};
   book.onkeydown=e=>{if(e.key==='ArrowRight')flip(1);if(e.key==='ArrowLeft')flip(-1);if(e.key==='Enter'||e.key===' '){e.preventDefault();openPage()}};
   showPage();
 }
@@ -851,12 +853,20 @@ function setHalves(l,r){const hl=document.getElementById('hl'),hr=document.getEl
 function showPage(){
   const S=spreads(),s=S[pageIdx],u=spreadURL(s);setHalves(u,u);
   const n=bookRecs().length;
-  document.getElementById('pg').textContent=s.kind==='front'?(viewing?'':'누르면 꾸밀 수 있어요'):s.kind==='back'?'':s.kind==='cover'?(viewing?'':'누르면 꾸밀 수 있어요'):s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
+  document.getElementById('pg').textContent=s.kind==='front'?(viewing?'':'앞표지를 누르면 꾸밀 수 있어요'):s.kind==='cover'?(viewing?'목차를 누르면 그 페이지로 가요':'목차를 누르면 그 페이지로, 나머지를 누르면 꾸밀 수 있어요'):'';
+  const jp=document.getElementById('jump');
+  if(jp){const opts=S.map((x,i)=>x.kind==='front'?'앞표지':x.kind==='cover'?'목차':x.kind==='end'?'마지막 장':x.kind==='back'?'뒤표지':`${i-1} / ${n} · ${shown(x.rec)}`);
+    if(jp.dataset.sig!==opts.join('|')){jp.innerHTML=opts.map((t,i)=>`<option value="${i}">${esc(t)}</option>`).join('');jp.dataset.sig=opts.join('|')}
+    jp.value=String(pageIdx)}
   document.getElementById('prev').disabled=pageIdx===0;document.getElementById('next').disabled=pageIdx===S.length-1;
   // warm the neighbours so the flip has its images ready
   setTimeout(()=>{if(S[pageIdx+1])spreadURL(S[pageIdx+1]);if(S[pageIdx-1])spreadURL(S[pageIdx-1])},60);
 }
-function openPage(){const s=spreads()[pageIdx];if(viewing){if(s.kind==='rec')showRecord(s.rec);return}if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else if(s.kind==='back')flip(-1);else if(s.kind==='front')frontEdit();else coverEdit()}
+// 목차에서 누른 줄 찾기 (공책 그림 좌표로 바꿔서)
+function tocHit(e){const book=document.getElementById('book');if(!e||!book)return-1;const b=book.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*W,y=(e.clientY-b.top)/b.height*H;
+  if(x<W/2+30||x>W-40)return-1;const i=Math.floor((y-(150+130-46))/64),n=Math.min(12,bookRecs().length);return i>=0&&i<n?i:-1}
+function goPage(i){const S=spreads();if(busy||i<0||i>=S.length||i===pageIdx)return;pageIdx=i;showPage()}
+function openPage(e){const s=spreads()[pageIdx];if(s.kind==='cover'){const i=tocHit(e);if(i>=0){goPage(2+i);return}}if(viewing){if(s.kind==='rec')showRecord(s.rec);return}if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else if(s.kind==='back')flip(-1);else if(s.kind==='front')frontEdit();else coverEdit()}
 function flip(dir){
   if(busy)return;const S=spreads(),ni=pageIdx+dir;if(ni<0||ni>=S.length)return;
   if(reduced()){pageIdx=ni;showPage();return}
