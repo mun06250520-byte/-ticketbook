@@ -1245,7 +1245,7 @@ function edit(id,keep){
   const src=records.find(r=>r.id===id);
   if(!keep)draft=src?JSON.parse(JSON.stringify(src)):{id:uid(),title:'',name:'',flag:'',date:new Date().toISOString().slice(0,10),place:'',pose:'rock',
     skin:SKINS[0],letter:LETTERS[0],flagColor:FLAGS[0],paper:'cream',kind:'ticket',bands:[{id:uid(),color:'#ff5a2e',color2:'#ffd23f',pattern:'stripe',text:'1DAY'}],
-    ticket:{cat:'콘서트',color:'#f6d05a',ink:'#c8202e',seat:'',no:'',face:'photo'}};
+    ticket:{cat:'콘서트',color:'#f6d05a',ink:'#c8202e',seat:'',no:'',face:'photo'},public:true};
   draft.kind=draft.kind||'band';draft.ticket=draft.ticket||{cat:'전시',color:'#f6d05a',seat:'',no:''};
   const pal=draft.palette||[];
   const kindLabel=draft.kind==='ticket'?`${draft.ticket.cat||'공연'} · 티켓`:'페스티벌 · 팔찌';
