@@ -32,11 +32,35 @@ const Cloud = {
     return { ...row.data, id: row.id, public: !!row.is_public, owner: row.user_id };
   },
 
+  profile: null, // 내 사람·표지 설정 (records 테이블의 kind:'profile' 줄 하나)
+
   async loadMine() {
     const { data, error } = await this.sb.from('records').select(COLS)
       .eq('user_id', this.user.id).order('updated_at', { ascending: false });
     if (error) throw error;
-    return (data || []).map(r => this.toRec(r));
+    const all = (data || []).map(r => this.toRec(r));
+    this.profile = all.find(r => r.kind === 'profile') || null;
+    return all.filter(r => r.kind !== 'profile');
+  },
+
+  // 내 사람(아바타)과 표지 설정을 저장해요. 표지 사진은 Storage 의 <내 id>/profile/ 폴더에 올려요.
+  async saveProfile({ avatar, cover }) {
+    const uid = this.user.id;
+    const id = this.profile && isUuid(this.profile.id) ? this.profile.id : newId();
+    const folder = `${uid}/profile`;
+    const keep = new Set();
+    const c = { ...(cover || {}) };
+    for (const k of ['photo', 'bg']) if (c[k]) c[k] = await this.upload(c[k], folder, k, keep);
+    const data = { kind: 'profile', avatar: { ...(avatar || {}) }, cover: c };
+    const { data: row, error } = await this.sb.from('records')
+      .upsert({ id, user_id: uid, data, is_public: !avatar || avatar.show !== false })
+      .select(COLS).single();
+    if (error) throw error;
+    const { data: files } = await this.sb.storage.from(BUCKET).list(folder, { limit: 100 });
+    const stale = (files || []).map(f => `${folder}/${f.name}`).filter(p => !keep.has(p));
+    if (stale.length) await this.sb.storage.from(BUCKET).remove(stale);
+    this.profile = this.toRec(row);
+    return this.profile;
   },
 
   async loadPublic(limit = 60) {

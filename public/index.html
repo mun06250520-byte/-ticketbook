@@ -79,6 +79,7 @@ input[type=text],input[type=date]{width:100%;border:1px solid var(--line);backgr
 .band-head{display:flex;align-items:center;gap:10px}
 .band-head canvas{flex:1;min-width:0;height:34px;border-radius:6px}
 .sw{display:flex;flex-wrap:wrap;gap:6px}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px}
 .sw button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);padding:0}
 .sw button[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}
 .mini{font-size:12px;color:var(--muted);margin-bottom:-4px}
@@ -149,7 +150,9 @@ header .btn{white-space:nowrap}
 .story-btn.btn{display:block;margin:8px auto 0;padding:8px 12px;background:none;color:var(--muted);border:0;font-weight:400;font-size:14px;text-decoration:underline;text-underline-offset:4px}
 .stage-hint{font-size:13px;color:var(--muted);text-align:center;margin:10px 0 0}
 #crowd{width:100%;max-width:100%;aspect-ratio:4/5;border-radius:14px;display:block;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.18)}
-.stage-actions{display:flex;justify-content:center;margin-top:10px}
+.stage-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.viewing{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:8px 8px 8px 14px;margin:0 0 10px}
+.viewing .btn{padding:8px 12px;background:var(--surface);color:var(--ink)}
 @media (prefers-reduced-motion:no-preference){.card{transition:transform .15s}.card:active{transform:scale(.97)}}
 </style>
 
@@ -621,7 +624,7 @@ const shown=r=>r.name||(r.title||'').replace(/\//g,'')||'제목 없는 공연';
 const pageCache={};
 function clearPages(){for(const k in pageCache)delete pageCache[k]}
 function ordered(){return[...records].sort((a,b)=>(a.date||'').localeCompare(b.date||''))}
-function spreads(){return[{kind:'front'},{kind:'cover'},...ordered().map(rec=>({kind:'rec',rec})),{kind:'end'},{kind:'back'}]}
+function spreads(){return[{kind:'front'},{kind:'cover'},...bookRecs().map(rec=>({kind:'rec',rec})),{kind:'end'},{kind:'back'}]}
 function spreadBase(ctx,seed,paper){
   const r=rng(seed);
   ctx.fillStyle='#e7e4df';ctx.fillRect(0,0,W,H);
@@ -641,14 +644,18 @@ const COVER_PAPERS=[['크라프트','#cfae7f'],['밤하늘','#2b3557'],['딸기�
 const COVER_LETTERS=['#d2e185','#ff9fb8','#ffffff','#ffd23f','#7ccf9a','#7fb6ff','#ff6b3d','#b79bff','#1b1d22'];
 let coverSaved=(()=>{try{return JSON.parse(localStorage.getItem(COVER_KEY))||{}}catch(e){return{}}})();
 if(coverSaved.letter==='#7ccf9a')coverSaved.letter='#d2e185';
-const coverCfg=()=>({title:'TICKET/BOOK',letter:'#d2e185',paper:'#cfae7f',label:'',toc:'목차',photo:'',love:'',...coverSaved});
+const COVER_DEFAULT={title:'TICKET/BOOK',letter:'#d2e185',paper:'#cfae7f',label:'',toc:'목차',photo:'',bg:''};
+const coverCfg=()=>({...COVER_DEFAULT,...(viewing?viewing.cover:coverSaved)});
 function renderCover(ctx,cfg=coverCfg()){
-  const recs=ordered(),nb=recs.reduce((a,r)=>a+(r.kind==='ticket'?0:r.bands.length),0),nt=recs.filter(r=>r.kind==='ticket').length;
+  const recs=bookRecs(),nb=recs.reduce((a,r)=>a+(r.kind==='ticket'?0:r.bands.length),0),nt=recs.filter(r=>r.kind==='ticket').length;
   const{px,py,pw,ph,mid,r}=spreadBase(ctx,'cover','cream');
   const dark=lum(cfg.paper)<.45;
   ctx.fillStyle=cfg.paper;ctx.fillRect(px,py,mid-px,ph);
+  const bgi=cfg.bg?getImg({id:'cbg_'+cfg.bg.length+cfg.bg.slice(-32),img:cfg.bg}):null;
+  if(bgi&&bgi.naturalWidth){const bw=mid-px,sc=Math.max(bw/bgi.naturalWidth,ph/bgi.naturalHeight),dw=bgi.naturalWidth*sc,dh=bgi.naturalHeight*sc;
+    ctx.save();ctx.beginPath();ctx.rect(px,py,bw,ph);ctx.clip();ctx.drawImage(bgi,px+(bw-dw)/2,py+(ph-dh)/2,dw,dh);ctx.fillStyle='rgba(0,0,0,.06)';ctx.fillRect(px,py,bw,ph);ctx.restore()}
   for(let i=0;i<700;i++){ctx.fillStyle=dark?`rgba(255,255,255,${r()*.08})`:`rgba(80,50,20,${r()*.12})`;ctx.fillRect(px+r()*(mid-px),py+r()*ph,2,2)}
-  const photo=cfg.photo?getImg({id:'cover_photo',img:cfg.photo}):null;
+  const photo=cfg.photo?getImg({id:'cph_'+cfg.photo.length+cfg.photo.slice(-32),img:cfg.photo}):null;
   drawLetters(ctx,{title:cfg.title||'TICKET/BOOK',letter:cfg.letter,id:'c'},rng('cv'),px+60,py+90,mid-px-130,cfg.photo?300:400);
   if(photo&&photo.naturalWidth){
     // polaroid with the user's photo
@@ -752,11 +759,13 @@ function home(opts={}){
   <div class="tabs" role="group" aria-label="보기 방식">
     <button class="chip" data-m="book" aria-pressed="${homeMode==='book'}">공책으로 넘겨보기</button>
     <button class="chip" data-m="crowd" aria-pressed="${homeMode==='crowd'}">다 같이 보기</button></div>
+  ${viewing?`<div class="viewing"><b>${viewing.name?esc(viewing.name)+'님의':'다른 사람의'} 노트</b><button class="btn" id="exitView">← 다 같이 보기로</button></div>`:''}
   <div id="stage"></div>`;
   const bar=document.getElementById('bar');if(bar)bar.remove();
-  $app.querySelector('#new').onclick=()=>edit(null);
+  $app.querySelector('#new').onclick=()=>{if(viewing){viewing=null;clearPages()}edit(null)};
+  if(viewing)$app.querySelector('#exitView').onclick=()=>exitNotebook(true);
   renderAccount();
-  $app.querySelectorAll('.tabs .chip').forEach(b=>b.onclick=()=>{homeMode=b.dataset.m;try{localStorage.setItem('bandlog.mode',homeMode)}catch(e){}
+  $app.querySelectorAll('.tabs .chip').forEach(b=>b.onclick=()=>{if(viewing){viewing=null;clearPages();pageIdx=1}homeMode=b.dataset.m;try{localStorage.setItem('bandlog.mode',homeMode)}catch(e){}
     $app.querySelectorAll('.tabs .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));mode()});
   mode();
 }
@@ -766,7 +775,7 @@ function bookUI(){
   const st=document.getElementById('stage');
   st.innerHTML=`<div class="book" id="book" tabindex="0" role="button" aria-label="기록 공책. 좌우로 넘기고, 누르면 그 페이지를 열어요"><div class="half l" id="hl"></div><div class="half r" id="hr"></div></div>
   <div class="book-nav"><button class="btn" id="prev">‹ 이전 장</button><span id="pg"></span><button class="btn" id="next">다음 장 ›</button></div>
-  <p class="stage-hint">밀어서 넘기고, 페이지를 누르면 수정할 수 있어요</p>
+  <p class="stage-hint">${viewing?'밀어서 넘겨 보세요. 페이지를 누르면 크게 볼 수 있어요':'밀어서 넘기고, 페이지를 누르면 수정할 수 있어요'}</p>
   <button class="btn story-btn" id="story">이미지로 공유하기</button>`;
   const book=st.querySelector('#book');
   st.querySelector('#story').onclick=sharePage;st.querySelector('#prev').onclick=()=>flip(-1);st.querySelector('#next').onclick=()=>flip(1);
@@ -821,12 +830,12 @@ function setHalves(l,r){const hl=document.getElementById('hl'),hr=document.getEl
 function showPage(){
   const S=spreads(),s=S[pageIdx],u=spreadURL(s);setHalves(u,u);
   const n=S.length-4;
-  document.getElementById('pg').textContent=s.kind==='front'?'':s.kind==='back'?'':s.kind==='cover'?'누르면 꾸밀 수 있어요':s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
+  document.getElementById('pg').textContent=s.kind==='front'?'':s.kind==='back'?'':s.kind==='cover'?(viewing?'':'누르면 꾸밀 수 있어요'):s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
   document.getElementById('prev').disabled=pageIdx===0;document.getElementById('next').disabled=pageIdx===S.length-1;
   // warm the neighbours so the flip has its images ready
   setTimeout(()=>{if(S[pageIdx+1])spreadURL(S[pageIdx+1]);if(S[pageIdx-1])spreadURL(S[pageIdx-1])},60);
 }
-function openPage(){const s=spreads()[pageIdx];if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else if(s.kind==='back')flip(-1);else if(s.kind==='front')flip(1);else coverEdit()}
+function openPage(){const s=spreads()[pageIdx];if(viewing){if(s.kind==='rec')showRecord(s.rec);return}if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else if(s.kind==='back')flip(-1);else if(s.kind==='front')flip(1);else coverEdit()}
 function flip(dir){
   if(busy)return;const S=spreads(),ni=pageIdx+dir;if(ni<0||ni>=S.length)return;
   if(reduced()){pageIdx=ni;showPage();return}
@@ -898,19 +907,93 @@ function drawRing(ctx,slots,cx,cy,R,a0,t,alpha,detail){
   });
   ctx.restore();
 }
-function renderCrowd(ctx,recs,time){
+/* ---------- 다 같이 보기: 한 사람 = 한 계정, 꾸밀 수 있는 사람, 기록이 쌓일수록 긴 팔 ---------- */
+const AV_KEY='bandlog.avatar';
+const HAIR_STYLES=[['short','짧은 머리'],['ponytail','포니테일'],['pigtails','양갈래'],['bun','똥머리'],['long','긴 머리'],['curly','곱슬'],['cap','모자']];
+const BOTTOMS=[['skirt','치마'],['pants','바지'],['dress','원피스']];
+const TOP_PATTERNS=[['plain','민무늬'],['stripe','줄무늬'],['dot','물방울'],['check','체크']];
+const AV_SKINS=['#f6d2b8','#f1c09a','#d9a07a','#b97a55','#8a5a3c','#f6c3a3','#b9dcf5','#bfe6cf','#e9d3f5','#f8dc9b'];
+const AV_HAIRS=['#14100e','#2a1d17','#4a3326','#7a5230','#c98a4b','#e8c872','#d9d9d9','#ff9fb8','#7fb6ff','#d2e185'];
+const AV_CLOTHES=['#ffffff','#1b1d22','#d2e185','#ffd23f','#ff4f79','#ff8a3d','#7fb6ff','#2f6bff','#22c08a','#b79bff','#c7b5ff','#a0785a'];
+const AV_SHOES=['#f4f4f2','#1b1d22','#ff4f79','#ffd23f','#7fb6ff','#a0785a'];
+function defaultAvatar(seed){const r=rng(String(seed||'me'));const pick=a=>a[Math.floor(r()*a.length)];
+  return{name:'',skin:pick(AV_SKINS.slice(0,6)),hairStyle:pick(HAIR_STYLES)[0],hair:pick(AV_HAIRS.slice(0,6)),top:pick(AV_CLOTHES),pattern:'plain',bottom:pick(BOTTOMS)[0],bottomColor:pick(AV_CLOTHES),shoes:'#f4f4f2',show:true}}
+const fixAvatar=(a,seed)=>({...defaultAvatar(seed),...(a||{})});
+let myAvatar=(()=>{try{return fixAvatar(JSON.parse(localStorage.getItem(AV_KEY)),'me')}catch(e){return defaultAvatar('me')}})();
+// 팔에 찰 것: 팔찌는 하나씩, 티켓은 한 장씩
+function personItems(recs){const out=[];[...recs].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(rec=>{
+  if(rec.kind==='ticket')out.push({ticketColor:ticketPalette(rec).bg,rec});else(rec.bands||[]).forEach(b=>out.push({...b,rec}))});return out}
+const armLen=n=>Math.min(560,Math.max(150,96+Math.ceil(n/2)*40));
+function makePerson(id,av,recs,me){const items=personItems(recs);items.forEach(it=>{if(it.img)getImg(it)});return{id,me,av:fixAvatar(av,id),recs,items,L:armLen(items.length),phase:rng('ph'+id)()*6}}
+// 손잡은 원: 이웃 두 사람 팔 길이의 합만큼 떨어져 서요
+function ringLayout(Ls){const N=Ls.length;if(N<=1)return{R:0,ang:[0]};
+  if(N===2)return{R:(Ls[0]+Ls[1])*.42,ang:[0,Math.PI]};
+  const c=Ls.map((L,k)=>(L+Ls[(k+1)%N])*.9),f=R=>c.reduce((a,x)=>a+2*Math.asin(Math.min(1,x/(2*R))),0)-2*Math.PI;
+  let lo=Math.max(...c)/2,hi=1e5;if(f(lo)<0)hi=lo;else for(let i=0;i<60;i++){const m=(lo+hi)/2;f(m)>0?lo=m:hi=m}
+  const R=hi,ang=[0];for(let k=0;k<N-1;k++)ang.push(ang[k]+2*Math.asin(Math.min(1,c[k]/(2*R))));
+  const off=(2*Math.PI-ang[N-1]-2*Math.asin(Math.min(1,c[N-1]/(2*R))))/N;return{R,ang:ang.map((a,k)=>a+off*k)}}
+function topPattern(ctx,av){const p=av.pattern||'plain';if(p==='plain')return;
+  ctx.save();ctx.beginPath();ctx.ellipse(0,0,46,30,0,0,7);ctx.clip();const ink=lum(av.top)>.6?'rgba(0,0,0,.18)':'rgba(255,255,255,.35)';ctx.fillStyle=ink;ctx.strokeStyle=ink;
+  if(p==='stripe'){ctx.lineWidth=6;for(let x=-50;x<=50;x+=15){ctx.beginPath();ctx.moveTo(x,-32);ctx.lineTo(x,32);ctx.stroke()}}
+  else if(p==='dot'){for(let x=-44;x<=44;x+=16)for(let y=-28;y<=28;y+=14){ctx.beginPath();ctx.arc(x+(Math.round(y/14)%2?8:0),y,3.5,0,7);ctx.fill()}}
+  else if(p==='check'){ctx.globalAlpha=.8;for(let x=-48;x<=48;x+=18)ctx.fillRect(x,-32,8,64);for(let y=-30;y<=30;y+=18)ctx.fillRect(-48,y,96,8)}
+  ctx.restore()}
+// 위에서 내려다본 사람 (지역 좌표: +x 가는 방향, -y 바깥쪽)
+function drawAvatar(ctx,av){
+  const hs=av.hairStyle||'ponytail',hair=av.hair,dk=shade(hair,-.25);
+  ctx.fillStyle=av.shoes||'#f4f4f2';for(const fx of[-16,16]){ctx.beginPath();ctx.ellipse(fx-10,-50,10,16,-.2,0,7);ctx.fill()}
+  if(av.bottom==='skirt'||av.bottom==='dress'){ctx.fillStyle=av.bottom==='dress'?shade(av.top,.12):av.bottomColor;ctx.beginPath();ctx.ellipse(-8,-18,72,56,0,0,7);ctx.fill()}
+  else{ctx.fillStyle=av.bottomColor;for(const fy of[-14,14]){ctx.beginPath();ctx.ellipse(-6,fy-12,22,17,0,0,7);ctx.fill()}}
+  ctx.fillStyle=av.top;ctx.beginPath();ctx.ellipse(0,0,46,30,0,0,7);ctx.fill();topPattern(ctx,av);
+  ctx.fillStyle=hair;
+  if(hs==='long'){ctx.beginPath();ctx.ellipse(-20,4,36,30,0,0,7);ctx.fill()}
+  if(hs==='ponytail'){ctx.beginPath();ctx.ellipse(-36,4,20,9,.1,0,7);ctx.fill()}
+  if(hs==='pigtails'){for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(-12,4+s*30,13,10,0,0,7);ctx.fill()}}
+  if(hs==='curly'){for(let i=0;i<10;i++){const a=i/10*Math.PI*2;ctx.beginPath();ctx.arc(Math.cos(a)*24,4+Math.sin(a)*24,11,0,7);ctx.fill()}}
+  ctx.beginPath();ctx.arc(0,4,27,0,7);ctx.fill();
+  if(hs==='bun'){ctx.fillStyle=dk;ctx.beginPath();ctx.arc(-16,4,13,0,7);ctx.fill()}
+  if(hs==='cap'){ctx.fillStyle=av.bottomColor===av.top?shade(av.top,-.2):av.bottomColor;ctx.beginPath();ctx.arc(0,4,25,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(26,4,14,22,0,-Math.PI/2,Math.PI/2);ctx.fill()}
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,4,18,-2.4,-1.2);ctx.stroke();
+}
+// 한 팔: 어깨에서 손까지, 손목부터 팔찌가 차례로, 손에는 티켓 묶음
+function drawArm(ctx,from,to,av,items,detail){
+  const dx=to.x-from.x,dy=to.y-from.y,d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d,sh={x:from.x+ux*30,y:from.y+uy*30},len=Math.max(1,Math.hypot(to.x-sh.x,to.y-sh.y));
+  ctx.strokeStyle=av.skin;ctx.lineWidth=23*DS;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sh.x,sh.y);ctx.lineTo(to.x,to.y);ctx.stroke();
+  if(!detail)return;
+  const bands=items.filter(b=>!b.ticketColor),tickets=items.filter(b=>b.ticketColor),ang=Math.atan2(uy,ux),fit=Math.max(1,Math.floor((len-50)/38));
+  bands.slice(0,fit).forEach((b,i)=>{const t=Math.max(.08,1-(46+i*38)/len),wx=sh.x+(to.x-sh.x)*t,wy=sh.y+(to.y-sh.y)*t;CUR_POSTER=posterImg(b.rec);
+    ctx.save();ctx.translate(wx,wy);ctx.rotate(ang+Math.PI/2);ctx.translate(-26,-15);ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=4;ctx.fillStyle=b.color;ctx.fillRect(0,0,52,30);ctx.shadowColor='transparent';bandFace(ctx,b,52,30,0);ctx.restore()});
+  tickets.slice(-6).forEach((b,i,arr)=>{const k=i-(arr.length-1)/2;ctx.save();ctx.translate(to.x+ux*14,to.y+uy*14);ctx.rotate(ang-.5+k*.16);ctx.translate(k*4,-k*3);
+    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=5;ctx.fillStyle=b.ticketColor;ctx.beginPath();ctx.roundRect(-22,-34,44,68,6);ctx.fill();ctx.shadowColor='transparent';
+    const ink=lum(b.ticketColor)>.62?'rgba(0,0,0,.7)':'rgba(255,255,255,.88)';ctx.fillStyle=ink;ctx.fillRect(-14,-22,28,5);ctx.fillRect(-14,-12,20,4);
+    ctx.setLineDash([4,4]);ctx.strokeStyle=ink;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,16);ctx.lineTo(22,16);ctx.stroke();ctx.setLineDash([]);ctx.restore()});
+}
+function drawPeople(ctx,people,cx,cy,g,a0,t,alpha,detail,hits){
+  const N=people.length;if(!N)return;const lay=ringLayout(people.map(p=>p.L));
+  const pos=people.map((p,k)=>{const a=a0+lay.ang[k],rr=lay.R+(N>2?Math.sin(t*3+p.phase)*10:0);return{x:Math.cos(a)*rr,y:Math.sin(a)*rr,a}});
+  ctx.save();ctx.translate(cx,cy);ctx.scale(g,g);ctx.globalAlpha=alpha;
+  if(detail){ctx.fillStyle='rgba(10,40,10,.22)';pos.forEach(p=>{ctx.beginPath();ctx.ellipse(p.x+16,p.y+20,70,52,p.a,0,7);ctx.fill()})}
+  const split=it=>[it.filter((_,i)=>i%2===0),it.filter((_,i)=>i%2===1)];
+  const hand=(p,q,La,Lb,sg)=>{const d=Math.hypot(q.x-p.x,q.y-p.y)||1,tt=La/(La+Lb),m={x:p.x+(q.x-p.x)*tt,y:p.y+(q.y-p.y)*tt},h=Math.sqrt(Math.max(0,La*La-(d*tt)**2))*.6,
+    nx=-(q.y-p.y)/d,ny=(q.x-p.x)/d,out=(m.x*nx+m.y*ny)>=0?1:-1;return{x:m.x+nx*h*out*sg,y:m.y+ny*h*out*sg}};
+  if(N===1){const p=pos[0],P=people[0],tx=-Math.sin(p.a),ty=Math.cos(p.a),[r,l]=split(P.items);
+    [[1,r],[-1,l]].forEach(([sg,its])=>{const h={x:p.x+tx*sg*P.L,y:p.y+ty*sg*P.L};drawArm(ctx,p,h,P.av,its,detail);ctx.fillStyle=shade(P.av.skin,-.06);ctx.beginPath();ctx.arc(h.x,h.y,17,0,7);ctx.fill()})}
+  else for(let k=0;k<(N===2?2:N);k++){const i=N===2?0:k,j=N===2?1:(k+1)%N,p=pos[i],q=pos[j],A=people[i],B=people[j],m=hand(p,q,A.L,B.L,N===2?(k?-1:1):0),
+    [ar]=split(A.items),[,bl]=split(B.items);
+    drawArm(ctx,p,m,A.av,N===2&&k?split(A.items)[1]:ar,detail);drawArm(ctx,q,m,B.av,N===2&&k?split(B.items)[0]:bl,detail);
+    ctx.fillStyle=shade(A.av.skin,-.06);ctx.beginPath();ctx.arc(m.x,m.y,17,0,7);ctx.fill()}
+  pos.forEach((p,k)=>{const P=people[k];ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a+Math.PI/2);ctx.scale(DS,DS);
+    if(detail&&P.me){ctx.setLineDash([8,7]);ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-6,74,0,7);ctx.stroke();ctx.setLineDash([])}
+    drawAvatar(ctx,P.av);ctx.restore();
+    if(hits)hits.push({id:P.id,x0:cx+(p.x-85)*g,x1:cx+(p.x+85)*g,y0:cy+(p.y-85)*g,y1:cy+(p.y+85)*g})});
+  ctx.restore();
+}
+function renderCrowd(ctx,people,time,zoom=1){
   const moving=reduced()?0:1;time*=moving;crowdHits=[];
   ctx.drawImage(grass(),0,0);
-  const n=recs.length,N=n,R=N<2?0:Math.min(470,(N===2?190:170)/Math.sin(Math.PI/N)),cx=W/2,cy=H/2-30;DS=N>12?1.3*12/N:1.3;
-  const slots=[...Array(N)].map((_,k)=>({k,rec:null}));
-  if(n)recs.slice(0,N).forEach((rec,i)=>{slots[Math.floor(i*N/Math.min(n,N))].rec=rec});
-  const gen=rng('dancers'),shirts=['#ffd23f','#ff4f79','#7fb6ff','#c7b5ff','#ffffff','#ff8a3d','#22c08a'],hairs=['#2a1d17','#4a3326','#14100e','#7a5230'];
-  slots.forEach(s=>{s.shirt=s.rec?(s.rec.kind==='ticket'?(s.rec.ticket?.color||'#2f6bff'):(s.rec.bands[0]?.color||'#ff4f79')):shirts[s.k%7];s.skin=s.rec?s.rec.skin:SKINS[(s.k*3)%SKINS.length];
-    s.hair=hairs[Math.floor(gen()*4)];s.skirt=gen()<.55;s.phase=gen()*6});
-  const spin=.32;
-  for(const[dt,al]of[[.6,.1],[.45,.14],[.3,.2],[.15,.28]])drawRing(ctx,slots,cx,cy,R,(time-dt)*spin,time-dt,al,false);
-  drawRing(ctx,slots,cx,cy,R,time*spin,time,1,true);
-  // sunlight
+  DS=1.3;const N=people.length,lay=ringLayout(people.map(p=>p.L)),ext=N===1?people[0].L+60:lay.R+120,g=Math.min(1.1*zoom,(N===1?500:460)/ext*(N===1?Math.min(zoom,1.4):1)),cx=W/2,cy=H/2-30,spin=N===1?.5:.32;
+  for(const[dt,al]of[[.6,.1],[.45,.14],[.3,.2],[.15,.28]])drawPeople(ctx,people,cx,cy,g,(time-dt)*spin,time-dt,al,false);
+  drawPeople(ctx,people,cx,cy,g,time*spin,time,1,true,crowdHits);
   const sun=ctx.createRadialGradient(W*.85,0,0,W*.85,0,900);sun.addColorStop(0,'rgba(255,240,170,.35)');sun.addColorStop(1,'rgba(255,240,170,0)');ctx.fillStyle=sun;ctx.fillRect(0,0,W,H);
   ctx.textAlign='left';
 }
@@ -1034,25 +1117,82 @@ function renderCrowdNight(ctx,recs,time){
     ctx.strokeStyle='rgba(255,140,200,.25)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,hr,Math.PI*1.1,Math.PI*1.6);ctx.stroke()}
   ctx.textAlign='left';
 }
+function myId(){const C=window.TBCloud;return C&&C.user?C.user.id:'me'}
+function myPerson(av){return makePerson(myId(),av||myAvatar,ordered(),true)}
 function crowdUI(){
   const st=document.getElementById('stage');
-  st.innerHTML=`<canvas id="crowd" width="${W}" height="${H}" aria-label="저장한 기록마다 한 명씩 손잡고 원을 그리며 춤추는 잔디밭 장면"></canvas>
-  <p class="stage-hint" id="crowdHint">${cloudConfigured()?'내 기록과 모두가 공개한 기록이 한 사람씩 모여 춤춰요<br>누르면 그 기록을 볼 수 있어요':'팔찌를 찬 사람이 내 기록이에요<br>누르면 공책의 그 페이지로 넘어가요'}</p>
-  <div class="stage-actions"><button class="btn" id="crowdImg">동영상으로 보기</button></div>`;
-  const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d');let recs=ordered();
-  recs.forEach(r=>r.bands.forEach(getImg));
-  if(cloudConfigured())window.TBCloud.loadPublic().then(list=>{const mine=new Set(recs.map(r=>r.id)),more=list.filter(r=>!mine.has(r.id));recs.push(...more);more.forEach(r=>r.bands.forEach(getImg))})
-    .catch(err=>{console.error(err);const h=document.getElementById('crowdHint');if(h)h.textContent='공개 기록을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요'});
+  st.innerHTML=`<canvas id="crowd" width="${W}" height="${H}" aria-label="계정마다 한 사람씩 손잡고 원을 그리며 춤추는 잔디밭. 기록이 많을수록 팔찌와 티켓이 늘고 팔이 길어져요"></canvas>
+  <p class="stage-hint" id="crowdHint">${cloudConfigured()?'로그인한 사람마다 한 명씩 손잡고 춤춰요<br>기록이 쌓일수록 팔찌와 티켓이 늘고 팔이 길어져요<br>다른 사람을 누르면 그 사람의 노트를 볼 수 있어요':'점선 동그라미 안이 나예요<br>기록이 쌓일수록 팔찌와 티켓이 늘고 팔이 길어져요'}</p>
+  <div class="stage-actions"><button class="btn" id="avEdit">내 사람 꾸미기</button><button class="btn" id="crowdImg">동영상으로 보기</button></div>`;
+  const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d'),people=[myPerson()];
+  ordered().forEach(r=>r.bands.forEach(getImg));
+  if(cloudConfigured())window.TBCloud.loadPublic(500).then(list=>{
+    const me=myId(),profiles={},byOwner={};
+    list.forEach(r=>{if(!r.owner||r.owner===me)return;if(r.kind==='profile'){profiles[r.owner]=r;return}(byOwner[r.owner]=byOwner[r.owner]||[]).push(r)});
+    const owners=[...new Set([...Object.keys(profiles),...Object.keys(byOwner)])].sort();
+    owners.forEach(o=>{const pf=profiles[o];if(pf&&pf.avatar&&pf.avatar.show===false)return;
+      const P=makePerson(o,pf&&pf.avatar,byOwner[o]||[],false);P.cover=(pf&&pf.cover)||{};P.name=(pf&&pf.avatar&&pf.avatar.name)||'';people.push(P)})})
+    .catch(err=>{console.error(err);const h=document.getElementById('crowdHint');if(h)h.textContent='다른 사람들을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요'});
   const t0=performance.now();
   const loop=now=>{if(view!=='home'||homeMode!=='crowd'||!document.getElementById('crowd'))return;
-    renderCrowd(ctx,recs,(now-t0)/1000);if(!reduced())crowdRaf=requestAnimationFrame(loop)};
+    renderCrowd(ctx,people,(now-t0)/1000);if(!reduced())crowdRaf=requestAnimationFrame(loop)};
   crowdRaf=requestAnimationFrame(loop);
   cv.onclick=e=>{const b=cv.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*W,y=(e.clientY-b.top)/b.height*H;
-    const hit=[...crowdHits].reverse().find(h=>x>=h.x0&&x<=h.x1&&y>=h.y0&&y<=h.y1);
-    if(!hit)return;
-    if(records.some(r=>r.id===hit.id)){homeMode='book';home({focus:hit.id});return}
-    const other=recs.find(r=>r.id===hit.id);if(other)showRecord(other)};
-  st.querySelector('#crowdImg').onclick=e=>crowdVideo(recs,e.currentTarget);
+    const hit=[...crowdHits].reverse().find(h=>x>=h.x0&&x<=h.x1&&y>=h.y0&&y<=h.y1);if(!hit)return;
+    const P=people.find(p=>p.id===hit.id);if(!P)return;
+    if(P.me){homeMode='book';pageIdx=1;home();return}
+    openNotebook(P)};
+  st.querySelector('#avEdit').onclick=()=>avatarEdit();
+  st.querySelector('#crowdImg').onclick=e=>crowdVideo(people,e.currentTarget);
+}
+/* ---------- 다른 사람의 노트 보기 (읽기만) ---------- */
+let viewing=null;
+function bookRecs(){return viewing?[...viewing.recs].sort((a,b)=>(a.date||'').localeCompare(b.date||'')):ordered()}
+function openNotebook(P){viewing={id:P.id,name:P.name||'',recs:P.recs,cover:P.cover||{}};P.recs.forEach(r=>r.bands.forEach(getImg));clearPages();pageIdx=1;homeMode='book';home()}
+function exitNotebook(toCrowd){viewing=null;clearPages();pageIdx=1;homeMode=toCrowd?'crowd':'book';home()}
+/* ---------- 내 사람 꾸미기 ---------- */
+const loadJSON=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+const saveJSON=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
+function avatarEdit(init){
+  view='avatar';cancelAnimationFrame(crowdRaf);
+  const d={...(init||myAvatar)},prev=loadJSON(AV_KEY+'.prev');
+  const chips=(list,cur,act)=>`<div class="chiprow" data-act="${act}">${list.map(([v,n])=>`<button class="chip" data-v="${v}" aria-pressed="${cur===v}">${n}</button>`).join('')}</div>`;
+  const sw=(list,cur,act,label)=>`<div class="sw" data-act="${act}">${list.map(c=>`<button style="background:${c}" data-v="${c}" aria-label="${label} ${c}" aria-pressed="${cur===c}"></button>`).join('')}</div>`;
+  $app.innerHTML=`
+  <header><button class="btn ghost" id="avBack">← 다 같이 보기로</button><b style="font-size:15px">내 사람 꾸미기</b></header>
+  <div class="preview"><canvas id="avc" width="${W}" height="${H}" aria-label="내 사람 미리보기"></canvas></div>
+  <section class="panel"><h2>이름</h2>
+    <div class="field"><label for="av-name">다른 사람에게 보일 이름 (선택)</label><input type="text" id="av-name" value="${esc(d.name||'')}" placeholder="비워 두면 이름 없이 보여요"></div></section>
+  <section class="panel"><h2>머리</h2>
+    <div class="mini">머리 모양</div>${chips(HAIR_STYLES,d.hairStyle,'hairStyle')}
+    <div class="mini">머리 색</div>${sw(AV_HAIRS,d.hair,'hair','머리 색')}
+    <div class="mini">피부 색</div>${sw(AV_SKINS,d.skin,'skin','피부 색')}</section>
+  <section class="panel"><h2>옷</h2>
+    <div class="mini">윗옷 색</div>${sw(AV_CLOTHES,d.top,'top','윗옷 색')}
+    <div class="mini">윗옷 무늬</div>${chips(TOP_PATTERNS,d.pattern,'pattern')}
+    <div class="mini">아래옷</div>${chips(BOTTOMS,d.bottom,'bottom')}
+    <div class="mini">아래옷 색 · 모자 색</div>${sw(AV_CLOTHES,d.bottomColor,'bottomColor','아래옷 색')}
+    <div class="mini">신발 색</div>${sw(AV_SHOES,d.shoes,'shoes','신발 색')}</section>
+  ${cloudOn()?`<section class="panel"><label class="switch-row" for="av-show"><input type="checkbox" id="av-show" ${d.show!==false?'checked':''}>
+    <span><b>다 같이 보기에 나오기</b><span class="hint">끄면 다른 사람에게 내 사람이 보이지 않아요</span></span></label></section>`:''}`;
+  let bar=document.getElementById('bar');if(bar)bar.remove();
+  bar=document.createElement('div');bar.className='bar';bar.id='bar';
+  bar.innerHTML=`<div class="bar-in"><button class="btn" id="avPrev" ${prev?'':'disabled'}>이전 모습으로</button><button class="btn primary" id="avSave">저장하기</button></div>`;
+  document.body.appendChild(bar);
+  const $=q=>$app.querySelector(q),cv=$('#avc'),ctx=cv.getContext('2d'),t0=performance.now();
+  const loop=now=>{if(view!=='avatar'||!document.getElementById('avc'))return;renderCrowd(ctx,[myPerson(d)],(now-t0)/1000,1.9);if(!reduced())crowdRaf=requestAnimationFrame(loop)};
+  crowdRaf=requestAnimationFrame(loop);
+  $app.querySelectorAll('[data-act]').forEach(gp=>{const btns=gp.querySelectorAll('button');btns.forEach(b=>b.onclick=()=>{d[gp.dataset.act]=b.dataset.v;btns.forEach(x=>x.setAttribute('aria-pressed',x===b));if(reduced())renderCrowd(ctx,[myPerson(d)],0,1.9)})});
+  $('#av-name').oninput=e=>{d.name=e.target.value};
+  if($('#av-show'))$('#av-show').onchange=e=>{d.show=e.target.checked};
+  $('#avBack').onclick=()=>{homeMode='crowd';home()};
+  document.getElementById('avPrev').onclick=()=>{if(prev){toast('이전 모습을 불러왔어요. 저장하면 바뀌어요');avatarEdit(prev)}};
+  document.getElementById('avSave').onclick=async e=>{
+    const btn=e.currentTarget;btn.disabled=true;
+    saveJSON(AV_KEY+'.prev',myAvatar);myAvatar={...d};saveJSON(AV_KEY,myAvatar);
+    if(cloudOn())try{await window.TBCloud.saveProfile({avatar:myAvatar,cover:coverSaved})}catch(err){console.error(err);toast('계정에 저장하지 못했어요. 다시 눌러 주세요');btn.disabled=false;return}
+    toast('내 사람을 저장했어요');homeMode='crowd';home()};
+  if(reduced())renderCrowd(ctx,[myPerson(d)],0,1.9);
 }
 
 function homeOld(){
@@ -1227,9 +1367,12 @@ function edit(id,keep){
 /* ---------- 표지 꾸미기 화면 ---------- */
 let coverDraft=null;
 function paintCover(){const cv=document.getElementById('cv');if(!cv)return;renderCover(cv.getContext('2d'),coverDraft)}
-function coverEdit(){
-  view='cover';cancelAnimationFrame(crowdRaf);coverDraft=coverCfg();const ret=pageIdx;
+function coverEdit(init,retIdx){
+  view='cover';cancelAnimationFrame(crowdRaf);coverDraft={...COVER_DEFAULT,...(init||coverSaved)};const ret=retIdx??pageIdx,prev=loadJSON(COVER_KEY+'.prev');
   const sw=(list,cur,act,label)=>`<div class="sw" data-act="${act}">${list.map(([n,c])=>`<button style="background:${c}" data-v="${c}" aria-label="${label} ${n}" title="${n}" aria-pressed="${cur===c}"></button>`).join('')}</div>`;
+  const pick=(key,label)=>`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="file" id="c-${key}Label">${coverDraft[key]?'사진 바꾸기':'사진 올리기'}<input type="file" accept="image/*" id="c-${key}" data-key="${key}"></label>
+      <button class="btn ghost" id="c-no-${key}" data-key="${key}" ${coverDraft[key]?'':'hidden'}>${label} 빼기</button></div>`;
   $app.innerHTML=`
   <header><button class="btn ghost" id="cvBack">← 공책으로</button><b style="font-size:15px">표지 꾸미기</b></header>
   <div class="preview"><canvas id="cv" width="${W}" height="${H}" aria-label="첫 장 미리보기"></canvas></div>
@@ -1238,33 +1381,36 @@ function coverEdit(){
       <span class="hint">/ 를 넣으면 그 자리에서 줄이 바뀌어요</span></div>
     <div class="mini">글자 색</div>${sw(COVER_LETTERS.map(c=>['',c]),coverDraft.letter,'letter','글자 색')}
     <div class="mini">표지 색</div>${sw(COVER_PAPERS,coverDraft.paper,'paper','표지 색')}
-    <div class="mini">사진 붙이기</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <label class="file" id="c-photoLabel">${coverDraft.photo?'사진 바꾸기':'사진 올리기'}<input type="file" accept="image/*" id="c-photo"></label>
-      <button class="btn ghost" id="c-noPhoto" ${coverDraft.photo?'':'hidden'}>사진 빼기</button></div>
+    <div class="mini">표지 배경 사진 (표지 전체에 깔려요)</div>${pick('bg','배경 사진')}
+    <div class="mini">폴라로이드 사진</div>${pick('photo','폴라로이드')}
   </section>
   <section class="panel"><h2>라벨</h2>
     <div class="field"><label for="c-label">라벨 문구</label><input type="text" id="c-label" maxlength="24" value="${esc(coverDraft.label)}" placeholder="비워 두면 '팔찌 N개 · 티켓 N장'이 자동으로 나와요"></div>
   </section>`;
   let bar=document.getElementById('bar');if(bar)bar.remove();
   bar=document.createElement('div');bar.className='bar';bar.id='bar';
-  bar.innerHTML=`<div class="bar-in"><button class="btn" id="cvReset">처음 표지로</button><button class="btn primary" id="cvSave">표지 저장하기</button></div>`;
+  bar.innerHTML=`<div class="bar-in"><button class="btn" id="cvPrev" ${prev?'':'disabled'}>이전 표지로</button><button class="btn" id="cvReset">처음 표지로</button><button class="btn primary" id="cvSave">저장</button></div>`;
   document.body.appendChild(bar);
   const $=q=>$app.querySelector(q);
   for(const[id,key]of[['#c-title','title'],['#c-label','label']])$(id).oninput=e=>{coverDraft[key]=e.target.value;paintCover()};
   $app.querySelectorAll('[data-act]').forEach(g=>{const btns=g.querySelectorAll('button');btns.forEach(b=>b.onclick=()=>{coverDraft[g.dataset.act]=b.dataset.v;btns.forEach(x=>x.setAttribute('aria-pressed',x===b));paintCover()})});
-  $('#c-photo').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
-    const k=Math.min(1,600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-    c.getContext('2d').drawImage(im,0,0,c.width,c.height);coverDraft.photo=c.toDataURL('image/jpeg',.84);
-    $('#c-photoLabel').firstChild.textContent='사진 바꾸기';$('#c-noPhoto').hidden=false;paintCover()};im.src=fr.result};fr.readAsDataURL(f)};
-  $('#c-noPhoto').onclick=e=>{coverDraft.photo='';e.target.hidden=true;$('#c-photoLabel').firstChild.textContent='사진 올리기';paintCover()};
+  for(const key of['bg','photo']){
+    $('#c-'+key).onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
+      const lim=key==='bg'?1000:600,k=Math.min(1,lim/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);coverDraft[key]=c.toDataURL('image/jpeg',.82);
+      $('#c-'+key+'Label').firstChild.textContent='사진 바꾸기';$('#c-no-'+key).hidden=false;paintCover()};im.src=fr.result};fr.readAsDataURL(f)};
+    $('#c-no-'+key).onclick=e=>{coverDraft[key]='';e.target.hidden=true;$('#c-'+key+'Label').firstChild.textContent='사진 올리기';paintCover()};
+  }
   $('#cvBack').onclick=()=>{pageIdx=ret;home()};
-  document.getElementById('cvReset').onclick=()=>{coverDraft={title:'TICKET/BOOK',letter:'#d2e185',paper:'#cfae7f',label:'',toc:'목차',photo:'',love:''};coverEdit.refill();};
-  coverEdit.refill=()=>{$('#c-title').value=coverDraft.title;$('#c-label').value='';
-    $app.querySelectorAll('[data-act]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===coverDraft[g.dataset.act])));
-    $('#c-noPhoto').hidden=true;$('#c-photoLabel').firstChild.textContent='사진 올리기';paintCover()};
-  document.getElementById('cvSave').onclick=()=>{coverSaved={...coverDraft};let ok=true;try{localStorage.setItem(COVER_KEY,JSON.stringify(coverSaved))}catch(e){ok=false}
-    clearPages();pageIdx=ret;toast(ok?'표지를 저장했어요':'사진이 커서 이 브라우저에 저장하지 못했어요. 다른 사진을 골라 주세요');if(ok)home()};
+  document.getElementById('cvPrev').onclick=()=>{if(prev){toast('이전 표지를 불러왔어요. 저장하면 바뀌어요');coverEdit(prev,ret)}};
+  document.getElementById('cvReset').onclick=()=>coverEdit({...COVER_DEFAULT},ret);
+  document.getElementById('cvSave').onclick=async e=>{
+    const btn=e.currentTarget;btn.disabled=true;
+    saveJSON(COVER_KEY+'.prev',coverSaved);coverSaved={...coverDraft};
+    if(cloudOn())try{const pf=await window.TBCloud.saveProfile({avatar:myAvatar,cover:coverSaved});if(pf&&pf.cover)coverSaved=pf.cover}
+      catch(err){console.error(err);toast('계정에 저장하지 못했어요. 다시 눌러 주세요');btn.disabled=false;return}
+    const ok=saveJSON(COVER_KEY,coverSaved);
+    clearPages();pageIdx=ret;toast(ok||cloudOn()?'표지를 저장했어요':'사진이 커서 이 브라우저에 저장하지 못했어요. 다른 사진을 골라 주세요');if(ok||cloudOn())home();else btn.disabled=false};
   paintCover();
 }
 
@@ -1276,8 +1422,10 @@ window.TBApp={
   cloudReady(){if(cloudState==='off')cloudState='ready';renderAccount()},
   cloudLoading(){cloudState='loading';renderAccount()},
   cloudError(m){cloudState='ready';cloudMsg=m;renderAccount();toast(m)},
-  useCloud(list){cloudState='ready';records=list;pageIdx=1;clearPages();refreshHome()},
-  useLocal(){cloudState='ready';records=localRecords;pageIdx=1;clearPages();refreshHome()},
+  useCloud(list){cloudState='ready';records=list;pageIdx=1;
+    {const C=window.TBCloud,P=C&&C.profile;if(P){if(P.avatar)myAvatar=fixAvatar(P.avatar,C.user.id);if(P.cover)coverSaved={...P.cover}}
+     else if(C&&C.user)C.saveProfile({avatar:myAvatar,cover:coverSaved}).catch(console.error)}clearPages();refreshHome()},
+  useLocal(){cloudState='ready';records=localRecords;pageIdx=1;myAvatar=fixAvatar(loadJSON(AV_KEY),'me');coverSaved=loadJSON(COVER_KEY)||{};clearPages();refreshHome()},
 };
 function refreshHome(){if(view==='home')home();else renderAccount()}
 function localImportable(){
