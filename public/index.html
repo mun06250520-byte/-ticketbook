@@ -80,6 +80,7 @@ input[type=text],input[type=date]{width:100%;border:1px solid var(--line);backgr
 .band-head canvas{flex:1;min-width:0;height:34px;border-radius:6px}
 .sw{display:flex;flex-wrap:wrap;gap:6px}
 .chiprow{display:flex;flex-wrap:wrap;gap:6px}
+.chip.ic{display:grid;place-items:center;width:48px;height:40px;padding:0;border-radius:12px}
 .sw button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);padding:0}
 .sw button[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}
 .mini{font-size:12px;color:var(--muted);margin-bottom:-4px}
@@ -221,11 +222,16 @@ const cloudConfigured=()=>!!(window.TBCloud&&window.TBCloud.configured);
 
 let view='home',draft=null,animT=1;
 const imgCache={};
+// 그림이 늦게 도착하면 지금 화면만 다시 그려요 (화면 전체를 다시 만들지 않아서 깜빡이지 않아요)
+let imgTimer=0;
+function imgLoaded(){clearTimeout(imgTimer);imgTimer=setTimeout(()=>{
+  if(view==='edit')drawAll();else if(view==='cover'){paintCover();if(document.getElementById('cvf')&&frontEdit.paint)frontEdit.paint()}
+  else if(view==='home'&&homeMode!=='crowd'){clearPages();if(document.getElementById('pg'))showPage()}},60)}
 function getImg(b){
   if(!b.img)return null;
   let c=imgCache[b.id];
-  if(c&&c.src===b.img)return c.complete?c:null;
-  c=new Image();if(/^https?:/.test(b.img))c.crossOrigin='anonymous';c.onload=()=>{if(view==='edit')drawAll();else if(view==='cover')paintCover();else{clearPages();home()}};c.src=b.img;imgCache[b.id]=c;return null;
+  if(c&&c._src===b.img)return c.complete&&c.naturalWidth?c:null;
+  c=new Image();c._src=b.img;if(/^https?:/.test(b.img))c.crossOrigin='anonymous';c.onload=imgLoaded;c.src=b.img;imgCache[b.id]=c;return null;
 }
 
 /* ---------- helpers ---------- */
@@ -624,7 +630,7 @@ const shown=r=>r.name||(r.title||'').replace(/\//g,'')||'제목 없는 공연';
 const pageCache={};
 function clearPages(){for(const k in pageCache)delete pageCache[k]}
 function ordered(){return[...records].sort((a,b)=>(a.date||'').localeCompare(b.date||''))}
-function spreads(){return[{kind:'front'},{kind:'cover'},...bookRecs().map(rec=>({kind:'rec',rec})),{kind:'end'},{kind:'back'}]}
+function spreads(){return[{kind:'front'},{kind:'cover'},...bookRecs().map(rec=>({kind:'rec',rec})),...(viewing?[]:[{kind:'end'}]),{kind:'back'}]}
 function spreadBase(ctx,seed,paper){
   const r=rng(seed);
   ctx.fillStyle='#e7e4df';ctx.fillRect(0,0,W,H);
@@ -651,9 +657,6 @@ function renderCover(ctx,cfg=coverCfg()){
   const{px,py,pw,ph,mid,r}=spreadBase(ctx,'cover','cream');
   const dark=lum(cfg.paper)<.45;
   ctx.fillStyle=cfg.paper;ctx.fillRect(px,py,mid-px,ph);
-  const bgi=cfg.bg?getImg({id:'cbg_'+cfg.bg.length+cfg.bg.slice(-32),img:cfg.bg}):null;
-  if(bgi&&bgi.naturalWidth){const bw=mid-px,sc=Math.max(bw/bgi.naturalWidth,ph/bgi.naturalHeight),dw=bgi.naturalWidth*sc,dh=bgi.naturalHeight*sc;
-    ctx.save();ctx.beginPath();ctx.rect(px,py,bw,ph);ctx.clip();ctx.drawImage(bgi,px+(bw-dw)/2,py+(ph-dh)/2,dw,dh);ctx.fillStyle='rgba(0,0,0,.06)';ctx.fillRect(px,py,bw,ph);ctx.restore()}
   for(let i=0;i<700;i++){ctx.fillStyle=dark?`rgba(255,255,255,${r()*.08})`:`rgba(80,50,20,${r()*.12})`;ctx.fillRect(px+r()*(mid-px),py+r()*ph,2,2)}
   const photo=cfg.photo?getImg({id:'cph_'+cfg.photo.length+cfg.photo.slice(-32),img:cfg.photo}):null;
   drawLetters(ctx,{title:cfg.title||'TICKET/BOOK',letter:cfg.letter,id:'c'},rng('cv'),px+60,py+90,mid-px-130,cfg.photo?300:400);
@@ -726,9 +729,13 @@ function coverArt(ctx,x,y,w,h,side,o){
   g.addColorStop(0,side==='l'?'rgba(0,0,0,.28)':'rgba(0,0,0,0)');g.addColorStop(1,side==='l'?'rgba(0,0,0,0)':'rgba(0,0,0,.28)');ctx.fillStyle=g;ctx.fillRect(sx,y,40,h);
   ctx.restore();
 }
-function renderFront(ctx){
+function renderFront(ctx,cfg=coverCfg()){
   const r=deskBase(ctx,'front'),x=W/2,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'l');done();
-  coverArt(ctx,x,y,w,h,'l',{seed:'front',n:9,off:0,cx:.5,cy:.48,s:.44,R:410,t:1.3});
+  const im=cfg.bg?getImg({id:'cbg_'+cfg.bg.length+cfg.bg.slice(-32),img:cfg.bg}):null;
+  if(im){const sc=Math.max(w/im.naturalWidth,h/im.naturalHeight),dw=im.naturalWidth*sc,dh=im.naturalHeight*sc;
+    ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+    const g=ctx.createLinearGradient(x,0,x+40,0);g.addColorStop(0,'rgba(0,0,0,.28)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(x,y,40,h);ctx.restore()}
+  else coverArt(ctx,x,y,w,h,'l',{seed:'front',n:9,off:0,cx:.5,cy:.48,s:.44,R:410,t:1.3});
 }
 function renderBack(ctx){
   const r=deskBase(ctx,'back'),x=40,y=150,w=W/2-40,h=1060,done=closedBook(ctx,r,x,y,w,h,'r');done();
@@ -829,13 +836,13 @@ async function crowdVideo(recs,btn){
 function setHalves(l,r){const hl=document.getElementById('hl'),hr=document.getElementById('hr');if(!hl)return;hl.style.backgroundImage=`url(${l})`;hr.style.backgroundImage=`url(${r})`}
 function showPage(){
   const S=spreads(),s=S[pageIdx],u=spreadURL(s);setHalves(u,u);
-  const n=S.length-4;
-  document.getElementById('pg').textContent=s.kind==='front'?'':s.kind==='back'?'':s.kind==='cover'?(viewing?'':'누르면 꾸밀 수 있어요'):s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
+  const n=bookRecs().length;
+  document.getElementById('pg').textContent=s.kind==='front'?(viewing?'':'누르면 꾸밀 수 있어요'):s.kind==='back'?'':s.kind==='cover'?(viewing?'':'누르면 꾸밀 수 있어요'):s.kind==='end'?'마지막 장':`${pageIdx-1} / ${n} · ${shown(s.rec)}`;
   document.getElementById('prev').disabled=pageIdx===0;document.getElementById('next').disabled=pageIdx===S.length-1;
   // warm the neighbours so the flip has its images ready
   setTimeout(()=>{if(S[pageIdx+1])spreadURL(S[pageIdx+1]);if(S[pageIdx-1])spreadURL(S[pageIdx-1])},60);
 }
-function openPage(){const s=spreads()[pageIdx];if(viewing){if(s.kind==='rec')showRecord(s.rec);return}if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else if(s.kind==='back')flip(-1);else if(s.kind==='front')flip(1);else coverEdit()}
+function openPage(){const s=spreads()[pageIdx];if(viewing){if(s.kind==='rec')showRecord(s.rec);return}if(s.kind==='rec')edit(s.rec.id);else if(s.kind==='end')edit(null);else if(s.kind==='back')flip(-1);else if(s.kind==='front')frontEdit();else coverEdit()}
 function flip(dir){
   if(busy)return;const S=spreads(),ni=pageIdx+dir;if(ni<0||ni>=S.length)return;
   if(reduced()){pageIdx=ni;showPage();return}
@@ -909,16 +916,16 @@ function drawRing(ctx,slots,cx,cy,R,a0,t,alpha,detail){
 }
 /* ---------- 다 같이 보기: 한 사람 = 한 계정, 꾸밀 수 있는 사람, 기록이 쌓일수록 긴 팔 ---------- */
 const AV_KEY='bandlog.avatar';
-const HAIR_STYLES=[['short','짧은 머리'],['ponytail','포니테일'],['pigtails','양갈래'],['bun','똥머리'],['long','긴 머리'],['curly','곱슬'],['cap','모자']];
-const BOTTOMS=[['skirt','치마'],['pants','바지'],['dress','원피스']];
+const HAIR_STYLES=[['short','짧은 머리'],['pigtails','양갈래'],['long','긴 머리'],['curly','곱슬']];
+const BOTTOMS=[['skirt','치마','<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 4h8l1 3H7z" fill="currentColor"/><path d="M7 8h10l4 12H3z" fill="currentColor" opacity=".85"/></svg>'],['pants','바지','<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 3h12l1 18h-5l-2-11-2 11H5z" fill="currentColor"/></svg>']];
 const TOP_PATTERNS=[['plain','민무늬'],['stripe','줄무늬'],['dot','물방울'],['check','체크']];
 const AV_SKINS=['#f6d2b8','#f1c09a','#d9a07a','#b97a55','#8a5a3c','#f6c3a3','#b9dcf5','#bfe6cf','#e9d3f5','#f8dc9b'];
 const AV_HAIRS=['#14100e','#2a1d17','#4a3326','#7a5230','#c98a4b','#e8c872','#d9d9d9','#ff9fb8','#7fb6ff','#d2e185'];
 const AV_CLOTHES=['#ffffff','#1b1d22','#d2e185','#ffd23f','#ff4f79','#ff8a3d','#7fb6ff','#2f6bff','#22c08a','#b79bff','#c7b5ff','#a0785a'];
 const AV_SHOES=['#f4f4f2','#1b1d22','#ff4f79','#ffd23f','#7fb6ff','#a0785a'];
 function defaultAvatar(seed){const r=rng(String(seed||'me'));const pick=a=>a[Math.floor(r()*a.length)];
-  return{name:'',skin:pick(AV_SKINS.slice(0,6)),hairStyle:pick(HAIR_STYLES)[0],hair:pick(AV_HAIRS.slice(0,6)),top:pick(AV_CLOTHES),pattern:'plain',bottom:pick(BOTTOMS)[0],bottomColor:pick(AV_CLOTHES),shoes:'#f4f4f2',show:true}}
-const fixAvatar=(a,seed)=>({...defaultAvatar(seed),...(a||{})});
+  return{name:'',skin:AV_SKINS[0],hairStyle:pick(HAIR_STYLES)[0],hair:AV_HAIRS[0],top:pick(AV_CLOTHES),pattern:'plain',bottom:pick(BOTTOMS)[0],bottomColor:pick(AV_CLOTHES),shoes:'#f4f4f2',show:true}}
+const fixAvatar=(a,seed)=>{const v={...defaultAvatar(seed),...(a||{})};if(!HAIR_STYLES.some(h=>h[0]===v.hairStyle))v.hairStyle=v.hairStyle==='ponytail'||v.hairStyle==='bun'?'long':'short';if(v.bottom==='dress')v.bottom='skirt';return v};
 let myAvatar=(()=>{try{return fixAvatar(JSON.parse(localStorage.getItem(AV_KEY)),'me')}catch(e){return defaultAvatar('me')}})();
 // 팔에 찰 것: 팔찌는 하나씩, 티켓은 한 장씩
 function personItems(recs){const out=[];[...recs].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(rec=>{
@@ -1123,7 +1130,7 @@ function crowdUI(){
   const st=document.getElementById('stage');
   st.innerHTML=`<canvas id="crowd" width="${W}" height="${H}" aria-label="계정마다 한 사람씩 손잡고 원을 그리며 춤추는 잔디밭. 기록이 많을수록 팔찌와 티켓이 늘고 팔이 길어져요"></canvas>
   <p class="stage-hint" id="crowdHint">${cloudConfigured()?'로그인한 사람마다 한 명씩 손잡고 춤춰요<br>기록이 쌓일수록 팔찌와 티켓이 늘고 팔이 길어져요<br>다른 사람을 누르면 그 사람의 노트를 볼 수 있어요':'점선 동그라미 안이 나예요<br>기록이 쌓일수록 팔찌와 티켓이 늘고 팔이 길어져요'}</p>
-  <div class="stage-actions"><button class="btn" id="avEdit">내 사람 꾸미기</button><button class="btn" id="crowdImg">동영상으로 보기</button></div>`;
+  <div class="stage-actions"><button class="btn" id="avEdit">'나' 꾸미기</button><button class="btn" id="crowdImg">동영상으로 보기</button></div>`;
   const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d'),people=[myPerson()];
   ordered().forEach(r=>r.bands.forEach(getImg));
   if(cloudConfigured())window.TBCloud.loadPublic(500).then(list=>{
@@ -1148,30 +1155,30 @@ function crowdUI(){
 /* ---------- 다른 사람의 노트 보기 (읽기만) ---------- */
 let viewing=null;
 function bookRecs(){return viewing?[...viewing.recs].sort((a,b)=>(a.date||'').localeCompare(b.date||'')):ordered()}
-function openNotebook(P){viewing={id:P.id,name:P.name||'',recs:P.recs,cover:P.cover||{}};P.recs.forEach(r=>r.bands.forEach(getImg));clearPages();pageIdx=1;homeMode='book';home()}
+function openNotebook(P){viewing={id:P.id,name:P.name||'',recs:P.recs,cover:P.cover||{}};P.recs.forEach(r=>r.bands.forEach(getImg));clearPages();pageIdx=0;homeMode='book';home()}
 function exitNotebook(toCrowd){viewing=null;clearPages();pageIdx=1;homeMode=toCrowd?'crowd':'book';home()}
 /* ---------- 내 사람 꾸미기 ---------- */
 const loadJSON=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 const saveJSON=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 function avatarEdit(init){
   view='avatar';cancelAnimationFrame(crowdRaf);
-  const d={...(init||myAvatar)},prev=loadJSON(AV_KEY+'.prev');
-  const chips=(list,cur,act)=>`<div class="chiprow" data-act="${act}">${list.map(([v,n])=>`<button class="chip" data-v="${v}" aria-pressed="${cur===v}">${n}</button>`).join('')}</div>`;
+  const d=fixAvatar(init||myAvatar,myId()),prev=loadJSON(AV_KEY+'.prev');
+  const chips=(list,cur,act)=>`<div class="chiprow" data-act="${act}">${list.map(([v,n,ic])=>`<button class="chip${ic?' ic':''}" data-v="${v}" aria-pressed="${cur===v}" ${ic?`aria-label="${n}" title="${n}"`:''}>${ic||n}</button>`).join('')}</div>`;
   const sw=(list,cur,act,label)=>`<div class="sw" data-act="${act}">${list.map(c=>`<button style="background:${c}" data-v="${c}" aria-label="${label} ${c}" aria-pressed="${cur===c}"></button>`).join('')}</div>`;
   $app.innerHTML=`
-  <header><button class="btn ghost" id="avBack">← 다 같이 보기로</button><b style="font-size:15px">내 사람 꾸미기</b></header>
-  <div class="preview"><canvas id="avc" width="${W}" height="${H}" aria-label="내 사람 미리보기"></canvas></div>
+  <header><button class="btn ghost" id="avBack">← 다 같이 보기로</button><b style="font-size:15px">'나' 꾸미기</b></header>
+  <div class="preview"><canvas id="avc" width="${W}" height="${H}" aria-label="나 미리보기"></canvas></div>
   <section class="panel"><h2>이름</h2>
     <div class="field"><label for="av-name">다른 사람에게 보일 이름 (선택)</label><input type="text" id="av-name" value="${esc(d.name||'')}" placeholder="비워 두면 이름 없이 보여요"></div></section>
   <section class="panel"><h2>머리</h2>
-    <div class="mini">머리 모양</div>${chips(HAIR_STYLES,d.hairStyle,'hairStyle')}
+    ${chips(HAIR_STYLES,d.hairStyle,'hairStyle')}
     <div class="mini">머리 색</div>${sw(AV_HAIRS,d.hair,'hair','머리 색')}
     <div class="mini">피부 색</div>${sw(AV_SKINS,d.skin,'skin','피부 색')}</section>
   <section class="panel"><h2>옷</h2>
     <div class="mini">윗옷 색</div>${sw(AV_CLOTHES,d.top,'top','윗옷 색')}
     <div class="mini">윗옷 무늬</div>${chips(TOP_PATTERNS,d.pattern,'pattern')}
     <div class="mini">아래옷</div>${chips(BOTTOMS,d.bottom,'bottom')}
-    <div class="mini">아래옷 색 · 모자 색</div>${sw(AV_CLOTHES,d.bottomColor,'bottomColor','아래옷 색')}
+    <div class="mini">아래옷 색</div>${sw(AV_CLOTHES,d.bottomColor,'bottomColor','아래옷 색')}
     <div class="mini">신발 색</div>${sw(AV_SHOES,d.shoes,'shoes','신발 색')}</section>
   ${cloudOn()?`<section class="panel"><label class="switch-row" for="av-show"><input type="checkbox" id="av-show" ${d.show!==false?'checked':''}>
     <span><b>다 같이 보기에 나오기</b><span class="hint">끄면 다른 사람에게 내 사람이 보이지 않아요</span></span></label></section>`:''}`;
@@ -1367,6 +1374,39 @@ function edit(id,keep){
 /* ---------- 표지 꾸미기 화면 ---------- */
 let coverDraft=null;
 function paintCover(){const cv=document.getElementById('cv');if(!cv)return;renderCover(cv.getContext('2d'),coverDraft)}
+function frontEdit(init){
+  view='cover';cancelAnimationFrame(crowdRaf);coverDraft={...COVER_DEFAULT,...(init||coverSaved)};const prev=loadJSON(COVER_KEY+'.prev');
+  $app.innerHTML=`
+  <header><button class="btn ghost" id="cvBack">← 공책으로</button><b style="font-size:15px">앞표지 꾸미기</b></header>
+  <div class="preview"><canvas id="cvf" width="${W}" height="${H}" aria-label="앞표지 미리보기"></canvas></div>
+  <section class="panel"><h2>앞표지 사진</h2>
+    <p class="hint" style="margin:0">원하는 사진을 올리면 앞표지 전체에 깔려요. 빼면 원래 잔디밭 그림으로 돌아가요</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="file" id="f-bgLabel">${coverDraft.bg?'사진 바꾸기':'사진 올리기'}<input type="file" accept="image/*" id="f-bg"></label>
+      <button class="btn ghost" id="f-nobg" ${coverDraft.bg?'':'hidden'}>사진 빼기</button></div>
+  </section>`;
+  let bar=document.getElementById('bar');if(bar)bar.remove();
+  bar=document.createElement('div');bar.className='bar';bar.id='bar';
+  bar.innerHTML=`<div class="bar-in"><button class="btn" id="cvPrev" ${prev?'':'disabled'}>이전 표지로</button><button class="btn primary" id="cvSave">저장</button></div>`;
+  document.body.appendChild(bar);
+  const $=q=>$app.querySelector(q),paint=()=>{const c=document.getElementById('cvf');if(c)renderFront(c.getContext('2d'),coverDraft)};
+  frontEdit.paint=paint;
+  $('#f-bg').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
+    const k=Math.min(1,1000/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);coverDraft.bg=c.toDataURL('image/jpeg',.82);
+    $('#f-bgLabel').firstChild.textContent='사진 바꾸기';$('#f-nobg').hidden=false;paint()};im.src=fr.result};fr.readAsDataURL(f)};
+  $('#f-nobg').onclick=e=>{coverDraft.bg='';e.target.hidden=true;$('#f-bgLabel').firstChild.textContent='사진 올리기';paint()};
+  $('#cvBack').onclick=()=>{pageIdx=0;home()};
+  document.getElementById('cvPrev').onclick=()=>{if(prev){toast('이전 표지를 불러왔어요. 저장하면 바뀌어요');frontEdit(prev)}};
+  document.getElementById('cvSave').onclick=async e=>{
+    const btn=e.currentTarget;btn.disabled=true;
+    saveJSON(COVER_KEY+'.prev',coverSaved);coverSaved={...coverSaved,bg:coverDraft.bg};
+    if(cloudOn())try{const pf=await window.TBCloud.saveProfile({avatar:myAvatar,cover:coverSaved});if(pf&&pf.cover)coverSaved=pf.cover}
+      catch(err){console.error(err);toast('계정에 저장하지 못했어요. 다시 눌러 주세요');btn.disabled=false;return}
+    const ok=saveJSON(COVER_KEY,coverSaved);
+    clearPages();pageIdx=0;toast(ok||cloudOn()?'앞표지를 저장했어요':'사진이 커서 이 브라우저에 저장하지 못했어요. 다른 사진을 골라 주세요');if(ok||cloudOn())home();else btn.disabled=false};
+  paint();
+}
 function coverEdit(init,retIdx){
   view='cover';cancelAnimationFrame(crowdRaf);coverDraft={...COVER_DEFAULT,...(init||coverSaved)};const ret=retIdx??pageIdx,prev=loadJSON(COVER_KEY+'.prev');
   const sw=(list,cur,act,label)=>`<div class="sw" data-act="${act}">${list.map(([n,c])=>`<button style="background:${c}" data-v="${c}" aria-label="${label} ${n}" title="${n}" aria-pressed="${cur===c}"></button>`).join('')}</div>`;
@@ -1381,7 +1421,6 @@ function coverEdit(init,retIdx){
       <span class="hint">/ 를 넣으면 그 자리에서 줄이 바뀌어요</span></div>
     <div class="mini">글자 색</div>${sw(COVER_LETTERS.map(c=>['',c]),coverDraft.letter,'letter','글자 색')}
     <div class="mini">표지 색</div>${sw(COVER_PAPERS,coverDraft.paper,'paper','표지 색')}
-    <div class="mini">표지 배경 사진 (표지 전체에 깔려요)</div>${pick('bg','배경 사진')}
     <div class="mini">폴라로이드 사진</div>${pick('photo','폴라로이드')}
   </section>
   <section class="panel"><h2>라벨</h2>
@@ -1394,7 +1433,7 @@ function coverEdit(init,retIdx){
   const $=q=>$app.querySelector(q);
   for(const[id,key]of[['#c-title','title'],['#c-label','label']])$(id).oninput=e=>{coverDraft[key]=e.target.value;paintCover()};
   $app.querySelectorAll('[data-act]').forEach(g=>{const btns=g.querySelectorAll('button');btns.forEach(b=>b.onclick=()=>{coverDraft[g.dataset.act]=b.dataset.v;btns.forEach(x=>x.setAttribute('aria-pressed',x===b));paintCover()})});
-  for(const key of['bg','photo']){
+  for(const key of['photo']){
     $('#c-'+key).onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
       const lim=key==='bg'?1000:600,k=Math.min(1,lim/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
       c.getContext('2d').drawImage(im,0,0,c.width,c.height);coverDraft[key]=c.toDataURL('image/jpeg',.82);
