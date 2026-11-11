@@ -723,7 +723,7 @@ function spreadURL(s){
 }
 
 let homeMode=(()=>{try{return localStorage.getItem('bandlog.mode')||'book'}catch(e){return'book'}})();
-let pageIdx=0,busy=false,crowdRaf=0,crowdHits=[];
+let pageIdx=1,busy=false,crowdRaf=0,crowdHits=[];
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function home(opts={}){
@@ -1255,8 +1255,8 @@ window.TBApp={
   cloudReady(){if(cloudState==='off')cloudState='ready';renderAccount()},
   cloudLoading(){cloudState='loading';renderAccount()},
   cloudError(m){cloudState='ready';cloudMsg=m;renderAccount();toast(m)},
-  useCloud(list){cloudState='ready';records=list;pageIdx=0;clearPages();refreshHome()},
-  useLocal(){cloudState='ready';records=localRecords;pageIdx=0;clearPages();refreshHome()},
+  useCloud(list){cloudState='ready';records=list;pageIdx=1;clearPages();refreshHome()},
+  useLocal(){cloudState='ready';records=localRecords;pageIdx=1;clearPages();refreshHome()},
 };
 function refreshHome(){if(view==='home')home();else renderAccount()}
 function localImportable(){
