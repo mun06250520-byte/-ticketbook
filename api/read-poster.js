@@ -3,7 +3,7 @@
 function posterPrompt(){
   const y=new Date().getFullYear();
   return `이 이미지는 공연·전시·페스티벌 포스터예요. 포스터에 적힌 내용을 읽고 아래 모양의 JSON 하나로만 답하세요. 포스터에 없는 정보는 지어내지 말고 빈 문자열로 두세요.
-{"kind":"festival 또는 ticket","category":"페스티벌|전시|콘서트|뮤지컬|연극|클래식 중 하나","title":"공식 공연명(짧게)","cutout":"다이어리에 큼직하게 오려 붙일 글자. 2~4줄을 /로 구분, 한 줄 2~4글자 (예: PEN/TA/PORT, 서울/재즈/페스)","flag":"깃발에 쓸 영문 대문자 2~3단어 (예: ROCK FESTIVAL, JAZZ NIGHT, EXHIBITION)","date":"YYYY-MM-DD 시작일","time":"HH:MM 또는 빈칸","place":"장소 이름 짧게(16자 이내)","cast":"주요 출연진 짧게(20자 이내)","days":["팔찌에 쓸 날짜별 짧은 영문 문구 최대 3개, 예: DAY1 8.2"],"vibe":"rock|chill|cute|cheer 중 하나"}
+{"kind":"festival 또는 ticket","category":"페스티벌|전시|콘서트|뮤지컬|연극|클래식 중 하나","title":"포스터에 적힌 공식 공연명 전체(줄이지 말 것)","cutout":"공연명 전체를 한 글자도 빼지 말고 /로 줄을 나눠 적기. 한 줄 2~5글자, 줄 수 제한 없음 (예: PENTA/PORT, 서울/재즈/페스티벌)","flag":"깃발에 쓸 영문 대문자 2~3단어 (예: ROCK FESTIVAL, JAZZ NIGHT, EXHIBITION)","date":"YYYY-MM-DD 시작일","time":"HH:MM 또는 빈칸","place":"장소 이름 짧게(16자 이내)","cast":"주요 출연진 짧게(20자 이내)","days":["팔찌에 쓸 날짜별 짧은 영문 문구 최대 3개, 예: DAY1 8.2"],"vibe":"rock|chill|cute|cheer 중 하나"}
 여러 날 열리는 음악·야외 페스티벌이면 kind는 festival, 그 밖의 전시·콘서트·뮤지컬·연극·클래식은 ticket이에요. 연도가 안 보이면 ${y}년으로 보세요.`;
 }
 
