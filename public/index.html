@@ -1309,8 +1309,8 @@ function edit(id,keep){
   </section>
   <section class="panel" id="bandPanel"><h2>팔찌 <span class="hint">최대 3개 · 손목부터 채워져요</span></h2><div id="bands" style="display:grid;gap:10px"></div>
     <button class="btn" id="addb">+ 팔찌 추가</button></section>
-  ${cloudOn()?`<section class="panel"><label class="switch-row" for="f-public"><input type="checkbox" id="f-public" ${draft.public?'checked':''}>
-    <span><b>다 같이 보기에 공개</b><span class="hint">켜면 모든 방문자의 '다 같이 보기'에 이 기록이 나와요. 끄면 나만 볼 수 있어요</span></span></label></section>`:''}
+  <section class="panel"><label class="switch-row" for="f-public"><input type="checkbox" id="f-public" ${draft.public!==false?'checked':''}>
+    <span><b>다 같이 보기에 공개</b><span class="hint">기본으로 공개돼요. 나만 보고 싶으면 체크를 끄세요${cloudOn()?'':' (로그인하면 공개돼요)'}</span></span></label></section>
   <section class="panel"><h2>왼쪽 페이지</h2>
     <div class="field"><label for="f-title">오려 붙일 글자</label><input type="text" id="f-title" placeholder="예) PEN/TA/PORT" value="${esc(draft.title)}">
       <span class="hint">/ 를 넣으면 그 자리에서 줄이 바뀌어요</span></div>

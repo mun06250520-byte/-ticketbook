@@ -118,7 +118,7 @@ const Cloud = {
     const json = JSON.stringify(data, (k, v) => (typeof v === 'string' && v.startsWith('data:') ? undefined : v));
 
     const { data: row, error } = await this.sb.from('records')
-      .upsert({ id, user_id: uid, data: JSON.parse(json), is_public: !!rec.public })
+      .upsert({ id, user_id: uid, data: JSON.parse(json), is_public: rec.public !== false })
       .select(COLS).single();
     if (error) throw error;
 
@@ -143,7 +143,7 @@ const Cloud = {
     const saved = [];
     for (let i = 0; i < todo.length; i++) {
       onProgress && onProgress(i, todo.length);
-      saved.push(await this.save({ ...todo[i], id: null, public: false }));
+      saved.push(await this.save({ ...todo[i], id: null, public: todo[i].public !== false }));
     }
     onProgress && onProgress(todo.length, todo.length);
     return saved;
