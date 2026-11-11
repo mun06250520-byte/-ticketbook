@@ -722,7 +722,7 @@ function spreadURL(s){
   return pageCache[key]=c.toDataURL('image/jpeg',.93);
 }
 
-let homeMode=(()=>{try{return localStorage.getItem('bandlog.mode')||'book'}catch(e){return'book'}})();
+let homeMode='book'; // 들어오면 항상 공책(목차)부터
 let pageIdx=1,busy=false,crowdRaf=0,crowdHits=[];
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -753,9 +753,9 @@ function bookUI(){
   st.innerHTML=`<div class="book" id="book" tabindex="0" role="button" aria-label="기록 공책. 좌우로 넘기고, 누르면 그 페이지를 열어요"><div class="half l" id="hl"></div><div class="half r" id="hr"></div></div>
   <div class="book-nav"><button class="btn" id="prev">‹ 이전 장</button><span id="pg"></span><button class="btn" id="next">다음 장 ›</button></div>
   <p class="stage-hint">밀어서 넘기고, 페이지를 누르면 수정할 수 있어요</p>
-  <button class="btn story-btn" id="story">인스타 스토리로 공유</button>`;
+  <button class="btn story-btn" id="story">이미지로 공유하기</button>`;
   const book=st.querySelector('#book');
-  st.querySelector('#story').onclick=shareStory;st.querySelector('#prev').onclick=()=>flip(-1);st.querySelector('#next').onclick=()=>flip(1);
+  st.querySelector('#story').onclick=sharePage;st.querySelector('#prev').onclick=()=>flip(-1);st.querySelector('#next').onclick=()=>flip(1);
   let sx=null,sy=0;
   book.onpointerdown=e=>{sx=e.clientX;sy=e.clientY};
   book.onpointerup=e=>{if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
@@ -763,34 +763,45 @@ function bookUI(){
   book.onkeydown=e=>{if(e.key==='ArrowRight')flip(1);if(e.key==='ArrowLeft')flip(-1);if(e.key==='Enter'||e.key===' '){e.preventDefault();openPage()}};
   showPage();
 }
-/* ---------- 인스타그램 스토리 공유 (1080×1920) ---------- */
-async function shareStory(){
-  const S=spreads(),s=S[pageIdx];
-  const page=document.createElement('canvas');page.width=W;page.height=H;const px=page.getContext('2d');
-  if(s.kind==='rec'){s.rec.bands.forEach(getImg);await new Promise(r=>setTimeout(r,150));render(px,s.rec)}
-  else(s.kind==='cover'?renderCover:s.kind==='front'?renderFront:s.kind==='back'?renderBack:renderEnd)(px);
-  const c=document.createElement('canvas');c.width=1080;c.height=1920;const x=c.getContext('2d');
-  x.fillStyle='#e7e4df';x.fillRect(0,0,1080,1920);
-  const r=rng('story');for(let i=0;i<1400;i++){x.fillStyle=`rgba(90,80,70,${r()*.06})`;x.fillRect(r()*1080,r()*1920,3,1)}
-  // 위: 티켓 테두리 로고
-  x.save();x.translate(540-150,150);rollPath(x,300,150);x.fillStyle='#fffdf7';x.fill();x.lineWidth=4;x.strokeStyle='#16171b';x.stroke();
-  x.fillStyle='#16171b';x.textAlign='center';fitFont(x,'TICKET BOOK',240,46,F_TK,'700');x.fillText('TICKET BOOK',150,92);x.restore();
-  // 가운데: 지금 보고 있는 공책 페이지
-  const top=(1920-H)/2+40;
-  if(s.kind==='front'||s.kind==='back'){const sx=s.kind==='front'?W/2:0,k=1.15,dw=W/2*k,dh=H*k;x.drawImage(page,sx,120,W/2,H-240,540-dw/2,top+H/2-(H-240)*k/2,dw,(H-240)*k)}
-  else x.drawImage(page,0,top);
-  // 아래: 페이지 이름
-  x.textAlign='center';x.fillStyle='#2a2c33';x.font=`700 54px ${F_HAND}`;
-  const name=s.kind==='rec'?shown(s.rec):'my ticket book';fitFont(x,name,900,54,F_HAND,'700');x.fillText(name,540,top+H+90);
-  x.fillStyle='#8a8d96';x.font=`500 28px ${F_TK}`;x.fillText(location.host||'ticket book',540,top+H+140);x.textAlign='left';
-  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
-  const file=new File([blob],'ticketbook-story.png',{type:'image/png'});
+/* ---------- 지금 보는 페이지를 이미지로 공유 (1080×1350) ---------- */
+async function shareFile(blob,name,label){
+  const file=new File([blob],name,{type:blob.type});
   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file]});return}catch(e){if(e&&e.name==='AbortError')return}
+    try{await navigator.share({files:[file]});return true}catch(e){if(e&&e.name==='AbortError')return true}
   }
+  return false;
+}
+async function sharePage(){
+  const S=spreads(),s=S[pageIdx];
+  const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  if(s.kind==='rec'){s.rec.bands.forEach(getImg);await new Promise(r=>setTimeout(r,150));render(x,s.rec)}
+  else(s.kind==='cover'?renderCover:s.kind==='front'?renderFront:s.kind==='back'?renderBack:renderEnd)(x);
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  if(await shareFile(blob,'ticketbook.png'))return;
   const url=URL.createObjectURL(blob),m=document.createElement('div');m.className='modal';
-  m.innerHTML=`<div class="modal-in"><img src="${url}" alt="인스타 스토리용 이미지"><a class="btn primary" href="${url}" download="ticketbook-story.png" style="text-align:center;text-decoration:none">스토리 이미지 저장</a><p>1080×1920 · 인스타 스토리 크기예요<br>저장한 뒤 인스타그램 → 스토리 → 사진 고르기</p><button class="btn" id="close">닫기</button></div>`;
+  m.innerHTML=`<div class="modal-in"><img src="${url}" alt="지금 보는 공책 페이지"><a class="btn primary" href="${url}" download="ticketbook.png" style="text-align:center;text-decoration:none">이미지 저장</a><p>1080×1350 · 인스타 피드 4:5 크기예요</p><button class="btn" id="close">닫기</button></div>`;
   document.body.appendChild(m);m.onclick=e=>{if(e.target===m||e.target.id==='close'){m.remove();URL.revokeObjectURL(url)}};
+}
+/* ---------- 다 같이 보기를 동영상으로 (6초) ---------- */
+async function crowdVideo(recs,btn){
+  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){toast('이 브라우저는 동영상 만들기를 지원하지 않아요');return}
+  const types=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'],type=types.find(t=>MediaRecorder.isTypeSupported(t))||'';
+  const sc=.75,c=document.createElement('canvas');c.width=Math.round(W*sc);c.height=Math.round(H*sc);const x=c.getContext('2d');
+  const stream=c.captureStream(30),rec=new MediaRecorder(stream,type?{mimeType:type,videoBitsPerSecond:5e6}:{videoBitsPerSecond:5e6}),chunks=[];
+  rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+  const done=new Promise(r=>rec.onstop=r);
+  btn.disabled=true;const label=btn.textContent;
+  const dur=6000,t0=performance.now();
+  const draw=()=>{const t=(performance.now()-t0)/1000;x.setTransform(sc,0,0,sc,0,0);renderCrowd(x,recs,t+.5)};
+  draw();rec.start();
+  await new Promise(res=>{const step=()=>{const el=performance.now()-t0;draw();btn.textContent=`동영상 만드는 중… ${Math.max(0,Math.ceil((dur-el)/1000))}초`;if(el<dur)requestAnimationFrame(step);else res()};requestAnimationFrame(step)});
+  rec.stop();await done;btn.disabled=false;btn.textContent=label;
+  const mime=(rec.mimeType||type||'video/webm').split(';')[0],ext=mime.includes('mp4')?'mp4':'webm',blob=new Blob(chunks,{type:mime});
+  const url=URL.createObjectURL(blob),m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="modal-in"><video src="${url}" autoplay loop muted playsinline style="width:100%;border-radius:10px"></video><button class="btn primary" id="vshare">동영상 공유하기</button><a class="btn" href="${url}" download="ticketbook.${ext}" style="text-align:center;text-decoration:none;color:inherit">동영상 저장</a><p>6초 · ${ext.toUpperCase()}</p><button class="btn" id="close">닫기</button></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#vshare').onclick=async()=>{if(!(await shareFile(blob,'ticketbook.'+ext)))toast('이 기기에서는 바로 공유가 안 돼요. 저장한 뒤 올려 주세요')};
+  m.onclick=e=>{if(e.target===m||e.target.id==='close'){m.remove();URL.revokeObjectURL(url)}};
 }
 function setHalves(l,r){const hl=document.getElementById('hl'),hr=document.getElementById('hr');if(!hl)return;hl.style.backgroundImage=`url(${l})`;hr.style.backgroundImage=`url(${r})`}
 function showPage(){
@@ -1013,7 +1024,7 @@ function crowdUI(){
   const st=document.getElementById('stage');
   st.innerHTML=`<canvas id="crowd" width="${W}" height="${H}" aria-label="저장한 기록마다 한 명씩 손잡고 원을 그리며 춤추는 잔디밭 장면"></canvas>
   <p class="stage-hint" id="crowdHint">${cloudConfigured()?'모두가 공개한 기록이 한 사람씩 모여 춤춰요<br>누르면 그 기록을 볼 수 있어요':'팔찌를 찬 사람이 내 기록이에요<br>누르면 공책의 그 페이지로 넘어가요'}</p>
-  <div class="stage-actions"><button class="btn" id="crowdImg">이미지로 보기</button></div>`;
+  <div class="stage-actions"><button class="btn" id="crowdImg">동영상으로 보기</button></div>`;
   const cv=st.querySelector('#crowd'),ctx=cv.getContext('2d');let recs=cloudConfigured()?[]:ordered();
   recs.forEach(r=>r.bands.forEach(getImg));
   if(cloudConfigured())window.TBCloud.loadPublic().then(list=>{recs.splice(0,recs.length,...list);list.forEach(r=>r.bands.forEach(getImg));
@@ -1028,10 +1039,7 @@ function crowdUI(){
     if(!hit)return;
     if(records.some(r=>r.id===hit.id)){homeMode='book';home({focus:hit.id});return}
     const other=recs.find(r=>r.id===hit.id);if(other)showRecord(other)};
-  st.querySelector('#crowdImg').onclick=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;renderCrowd(c.getContext('2d'),recs,1.2);
-    const m=document.createElement('div');m.className='modal';
-    m.innerHTML=`<div class="modal-in"><img src="${c.toDataURL('image/png')}" alt="관객석 전체 이미지"><a class="btn primary" href="${c.toDataURL('image/png')}" download="ticketbook-crowd.png" style="text-align:center;text-decoration:none">이미지 저장</a><button class="btn" id="close">닫기</button></div>`;
-    document.body.appendChild(m);m.onclick=ev=>{if(ev.target===m||ev.target.id==='close')m.remove()}};
+  st.querySelector('#crowdImg').onclick=e=>crowdVideo(recs,e.currentTarget);
 }
 
 function homeOld(){
