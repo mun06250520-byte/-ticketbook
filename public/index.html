@@ -1091,7 +1091,7 @@ function edit(id,keep){
   $app.innerHTML=`
   <header><button class="btn ghost" id="back">← 내 기록</button>${src?'<button class="btn ghost" id="del">삭제</button>':''}</header>
   <div class="preview${!draft.poster||searchOpen?' static':''}"><canvas id="cv" width="${W}" height="${H}" aria-label="기록 카드 미리보기"></canvas>
-    <div style="display:flex;gap:8px"><button class="btn" id="play" style="flex:1">▶ 팔찌 채우는 장면 보기</button><button class="btn" id="tflip">↻ 뒤집기</button></div></div>
+    <div style="display:flex;gap:8px"><button class="btn" id="play" style="flex:1">▶ 팔찌 채우는 장면 보기</button><button class="btn" id="tflip">↻ 뒷면</button></div></div>
   <section class="panel" id="posterPanel">
     ${draft.poster&&!searchOpen?`<div class="poster-row"><img src="${draft.poster}" alt="공연 포스터">
       <div class="poster-info"><span class="pill-k">${esc(kindLabel)}</span><b>${esc(shown(draft))}</b>
@@ -1165,7 +1165,7 @@ function edit(id,keep){
   const syncKind=()=>{const tk=draft.kind==='ticket';
     $('#pose').hidden=tk;$('#handTitle').textContent=tk?'손 종이 색':'손 모양';
     $('#ticketPanel').hidden=!tk;$('#bandPanel').hidden=tk;$('#tflip').hidden=!tk;
-    $('#play').textContent=tk?'▶ 티켓 쥐어주기':'▶ 팔찌 채우는 장면 보기'};
+    $('#play').textContent=tk?'▶ 티켓':'▶ 팔찌 채우는 장면 보기'};
   $app.querySelectorAll('#kind .chip').forEach(c=>c.onclick=()=>{draft.kind=c.dataset.v;
     $app.querySelectorAll('#kind .chip').forEach(x=>x.setAttribute('aria-pressed',x===c));
     if(draft.kind==='band'&&!draft.bands.length)draft.bands.push({id:uid(),color:pal[0]||'#ff5a2e',color2:pal[1]||'#ffd23f',pattern:pal.length?'poster':'stripe',text:'1DAY'});
@@ -1180,7 +1180,7 @@ function edit(id,keep){
   $('#addb').onclick=()=>{if(draft.bands.length>=3){toast('팔찌는 3개까지 채울 수 있어요');return}
     const c=pal[draft.bands.length%(pal.length||1)]||PALETTE[Math.floor(Math.random()*PALETTE.length)];
     draft.bands.push({id:uid(),color:c,color2:pal[1]||'#f4f4f2',pattern:'solid',text:'DAY '+(draft.bands.length+1)});bandsUI();drawAll()};
-  $('#play').onclick=play;$('#tflip').onclick=flipTicket;$('#back').onclick=home;
+  $('#play').onclick=play;$('#tflip').onclick=flipTicket;if(draft.ticket)syncFace();$('#back').onclick=home;
   const pub=$('#f-public');if(pub)pub.onchange=e=>{draft.public=e.target.checked};
   const fp=$('#f-poster');if(fp)fp.onchange=e=>{const f=e.target.files[0];if(f)takePoster(f)};
   const rs=$('#reSearch');if(rs)rs.onclick=()=>{searchOpen=true;edit(draft.id,true);setTimeout(()=>{const q=document.getElementById('sq');if(q)q.focus()},50)};
@@ -1464,7 +1464,7 @@ function colorize(){
   draft.flagColor=lum(other)>.6?other:shade(other,.55);
   draft.skin=shade(draft.letter,.62);
 }
-function syncFace(){document.querySelectorAll('#tface .chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===(draft.ticket.face==='info'?'info':'photo')))}
+function syncFace(){document.querySelectorAll('#tface .chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===(draft.ticket.face==='info'?'info':'photo')));const f=document.getElementById('tflip');if(f)f.textContent=draft.ticket.face==='info'?'↻ 앞면':'↻ 뒷면'}
 function flipTicket(){
   if(FLIP_P!==null)return;
   const done=()=>{FLIP_P=null;draft.ticket.face=draft.ticket.face==='info'?'photo':'info';syncFace();paint()};
