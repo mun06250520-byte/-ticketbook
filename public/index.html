@@ -332,6 +332,19 @@ function stitchedGlyph(ctx,ch,cw,s,color){
   ctx.save();ctx.shadowColor='rgba(40,25,10,.28)';ctx.shadowBlur=0;ctx.shadowOffsetX=3;ctx.shadowOffsetY=4;
   ctx.drawImage(c,-cw/2-pad,-base,c.width/k,c.height/k);ctx.restore();
 }
+// 맨 위 TICKET BOOK 로고: 공책 표지와 같은 박음질 글씨
+function stitchBrand(el){
+  if(!el||el.dataset.stitched)return;el.dataset.stitched=1;
+  const txt=el.textContent.trim()||'TICKET BOOK',S=60,TR=1.06,dpr=Math.min(3,(window.devicePixelRatio||1)*1.2);
+  const m=document.createElement('canvas').getContext('2d');m.font=`${S}px ${F_STITCH}`;
+  const cws=[...txt].map(ch=>ch===' '?S*.35:m.measureText(ch).width),wid=cws.reduce((a,b)=>a+b*TR,0)+S*.4,hei=S*1.35;
+  const c=document.createElement('canvas');c.width=Math.ceil(wid*dpr);c.height=Math.ceil(hei*dpr);
+  c.style.height='34px';c.style.width=(34*wid/hei)+'px';c.style.display='block';c.setAttribute('role','img');c.setAttribute('aria-label',txt);
+  const x=c.getContext('2d');x.scale(dpr,dpr);x.font=`${S}px ${F_STITCH}`;
+  let px=S*.15;[...txt].forEach((ch,i)=>{const cw=cws[i];if(ch!==' '){x.save();x.translate(px+cw/2,S*1.02);x.rotate(((i*37)%7-3)*.012);stitchedGlyph(x,ch,cw,S,'#7ccf9a');x.restore()}px+=cw*TR});
+  el.textContent='';el.appendChild(c);
+}
+new MutationObserver(()=>document.querySelectorAll('.brand:not([data-stitched])').forEach(stitchBrand)).observe(document.documentElement,{childList:true,subtree:true});
 function drawLetters(ctx,rec,r,x0,y0,maxW,maxH){
   const lines=titleLines(rec.title),TR=1.1,LH=1.14; // 자간(TR)·행간(LH)
   let s=Math.min(200,maxH/lines.length/LH);
