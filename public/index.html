@@ -241,6 +241,14 @@ function lum(hex){const n=parseInt(hex.slice(1),16);return(.299*(n>>16)+.587*(n>
 function shade(hex,k){const n=parseInt(hex.slice(1),16);const f=v=>Math.max(0,Math.min(255,Math.round(v+(k<0?v*k:(255-v)*k))));
   return'#'+[n>>16,n>>8&255,n&255].map(f).map(v=>v.toString(16).padStart(2,'0')).join('')}
 function fmtDate(d){if(!d)return'';const[y,m,dd]=d.split('-');return`${y}. ${+m}. ${+dd}`}
+// 티켓 제목: 한 줄에 넣으면 글자가 너무 작아질 때는 두 줄로 나눠요. ':' 가 있으면 그 앞에서, 없으면 가운데 띄어쓰기에서 나눠요.
+function titleSplit(t){const s=String(t||'').trim(),i=s.indexOf(':');if(i>0&&i<s.length-1)return[s.slice(0,i).trim(),s.slice(i).trim()];
+  const sp=[...s.matchAll(/\s/g)].map(m=>m.index);if(!sp.length)return[s];const c=sp.reduce((a,b)=>Math.abs(b-s.length/2)<Math.abs(a-s.length/2)?b:a);return[s.slice(0,c).trim(),s.slice(c).trim()]}
+function fillTitle(ctx,t,x,y,maxW,size,family,weight,mode){
+  const f=z=>`${weight||''} ${z}px ${family}`;ctx.font=f(size);const w=ctx.measureText(t).width,L=titleSplit(t);
+  if(w<=maxW||size*maxW/w>=size*.72||L.length<2){fitFont(ctx,t,maxW,size,family,weight);ctx.fillText(t,x,y);return 0}
+  let z=size*.82;ctx.font=f(z);while(z>10&&Math.max(...L.map(l=>ctx.measureText(l).width))>maxW){z-=1;ctx.font=f(z)}
+  const lh=z*1.15,y0=mode==='center'?y-lh/2:mode==='up'?y-lh:y;L.forEach((l,i)=>ctx.fillText(l,x,y0+i*lh));return lh}
 function fitFont(ctx,text,max,size,family,weight){let s=size;do{ctx.font=`${weight||''} ${s}px ${family}`;s-=2}while(ctx.measureText(text).width>max&&s>14);}
 const ease=t=>1-Math.pow(1-Math.max(0,Math.min(1,t)),3);
 
@@ -492,13 +500,13 @@ function drawRollCard(ctx,rec,face,w,h){
     const po=posterImg(rec)||(tk.img?getImg({id:'tk_'+rec.id,img:tk.img}):null);
     if(po&&po.naturalWidth){const sc=Math.min(pw/po.naturalWidth,ph/po.naturalHeight),iw=po.naturalWidth*sc,ih=po.naturalHeight*sc;
       ctx.save();ctx.shadowColor='rgba(0,0,0,.18)';ctx.shadowBlur=6;ctx.shadowOffsetY=2;ctx.drawImage(po,px+(pw-iw)/2,py+(ph-ih)/2,iw,ih);ctx.restore()}
-    else{ctx.textBaseline='alphabetic';fitFont(ctx,shown(rec),pw-10,34,F_TK,'700');ctx.fillText(shown(rec),B/2,py+ph/2-10);
-      fitFont(ctx,'포스터를 올리면 여기에 들어가요',pw-10,15,F_TK,'500');ctx.globalAlpha=.75;ctx.fillText('포스터를 올리면 여기에 들어가요',B/2,py+ph/2+20);ctx.globalAlpha=1}
+    else{ctx.textBaseline='alphabetic';const tl=fillTitle(ctx,shown(rec),B/2,py+ph/2-10,pw-10,34,F_TK,'700','center');
+      fitFont(ctx,'포스터를 올리면 여기에 들어가요',pw-10,15,F_TK,'500');ctx.globalAlpha=.75;ctx.fillText('포스터를 올리면 여기에 들어가요',B/2,py+ph/2+20+tl/2);ctx.globalAlpha=1}
   }else{
     ctx.textBaseline='alphabetic';let y=py+22;
     const cat=(TICKET_CATS.find(c=>c[0]===tk.cat)||['',''])[1];
     ctx.font=`500 12px ${F_TK}`;ctx.fillText(['ADMIT ONE',cat].filter(Boolean).join(' · '),B/2,y);y+=40;
-    fitFont(ctx,shown(rec),pw-12,36,F_TK,'700');ctx.fillText(shown(rec),B/2,y);y+=14;
+    y+=fillTitle(ctx,shown(rec),B/2,y,pw-12,36,F_TK,'700','down');y+=14;
     ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(px+10,y);ctx.lineTo(px+pw-10,y);ctx.stroke();y+=26;
     const row=(label,val)=>{if(!val)return;ctx.textAlign='left';ctx.font=`500 11px ${F_TK}`;ctx.globalAlpha=.8;ctx.fillText(label,px+8,y);ctx.globalAlpha=1;
       fitFont(ctx,val,pw-70,16,F_TK,'700');ctx.fillText(val,px+62,y);y+=24};
@@ -522,7 +530,7 @@ function drawTicketCard(ctx,rec,face,w,h){if(ticketStyle(rec)==='roll')return dr
     const po=posterImg(rec)||(tk.img?getImg({id:'tk_'+rec.id,img:tk.img}):null);
     if(po)cover(ctx,po,B,HH);
     else{ctx.fillStyle=tp.ink;ctx.fillRect(0,0,B,HH);ctx.fillStyle=tp.bg;ctx.textAlign='center';
-      fitFont(ctx,shown(rec),200,40,F_BAND);ctx.fillText(shown(rec),B/2,230);
+      fillTitle(ctx,shown(rec),B/2,230,200,40,F_BAND,'','center');
       ctx.font=`700 20px ${F_HAND}`;ctx.fillText('포스터를 올리면',B/2,290);ctx.fillText('이 면에 들어가요',B/2,316)}
     const g=ctx.createLinearGradient(0,HH-120,0,HH);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.45)');ctx.fillStyle=g;ctx.fillRect(0,HH-120,B,120);
     ctx.fillStyle='#ffffff';ctx.font=`13px ${F_BAND}`;ctx.textAlign='left';ctx.fillText(no,16,HH-22);ctx.textAlign='right';ctx.fillText(fmtDate(rec.date),B-16,HH-22);
@@ -534,8 +542,9 @@ function drawTicketCard(ctx,rec,face,w,h){if(ticketStyle(rec)==='roll')return dr
     ctx.strokeRect(x0,34,x1-x0,330);
     const hl=y=>{ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke()};
     ctx.font=lab;ctx.textAlign='left';ctx.fillText('공연명',x0+8,50);ctx.textAlign='right';ctx.fillText((rec.date||'').slice(0,4),x1-8,50);
-    ctx.textAlign='center';fitFont(ctx,shown(rec),x1-x0-24,40,F_BAND);ctx.fillText(shown(rec),B/2,96);
-    if(rec.flag){ctx.save();ctx.translate(B/2,114);ctx.rotate(-.06);ctx.fillStyle=tp.acc;{const fl=rec.flag.split('/').map(t=>t.trim()).filter(Boolean).join(' ');fitFont(ctx,fl,190,32,F_PEN);ctx.fillText(fl,0,0)}ctx.restore();ctx.fillStyle=ink}
+    ctx.textAlign='center';let twoT=false;{const t=shown(rec),mw=x1-x0-24;ctx.font=`40px ${F_BAND}`;twoT=ctx.measureText(t).width>mw/.72&&titleSplit(t).length>1;
+      if(twoT)fillTitle(ctx,t,B/2,80,mw,36,F_BAND,'','down');else fillTitle(ctx,t,B/2,96,mw,40,F_BAND,'','up')}
+    if(rec.flag&&!twoT){ctx.save();ctx.translate(B/2,114);ctx.rotate(-.06);ctx.fillStyle=tp.acc;{const fl=rec.flag.split('/').map(t=>t.trim()).filter(Boolean).join(' ');fitFont(ctx,fl,190,32,F_PEN);ctx.fillText(fl,0,0)}ctx.restore();ctx.fillStyle=ink}
     hl(124);
     const row=(y,l,v)=>{ctx.textAlign='left';ctx.font=lab;ctx.fillText(l,x0+8,y);fitFont(ctx,v||'',x1-x0-72,15,F_HAND,'700');ctx.fillText(v||'',x0+60,y)};
     row(146,'날짜',[fmtDate(rec.date),tk.time].filter(Boolean).join('  '));row(170,'장소',placeText(rec));row(194,'출연',tk.cast);
@@ -580,7 +589,7 @@ function drawTicket(ctx,rec,w,h){
     const fade=ctx.createLinearGradient(0,120,0,182);fade.addColorStop(0,'rgba(0,0,0,0)');fade.addColorStop(1,col);ctx.fillStyle=fade;ctx.fillRect(0,120,w,62);
     ctx.fillStyle=acc;ctx.fillRect(18,190,w-36,4);
     ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle=acc;ctx.font=`20px ${F_BAND}`;ctx.fillText(cat,20,220);
-    ctx.fillStyle=ink;const t1=shown(rec);fitFont(ctx,t1,w-40,44,F_BAND);ctx.fillText(t1,20,264);
+    ctx.fillStyle=ink;const t1=shown(rec);fillTitle(ctx,t1,20,264,w-40,44,F_BAND,'','up');
     ctx.font=`700 26px ${F_HAND}`;ctx.fillText([fmtDate(rec.date),placeText(rec)].filter(Boolean).join(' · '),20,298);
     if(tk.seat){fitFont(ctx,tk.seat,w-40,24,F_HAND);ctx.globalAlpha=.85;ctx.fillText(tk.seat,20,326);ctx.globalAlpha=1}
     ctx.font=`22px ${F_BAND}`;ctx.fillText(tk.no||'ADMIT ONE',22,stubY+44);
