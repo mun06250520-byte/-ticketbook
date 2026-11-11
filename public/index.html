@@ -969,9 +969,9 @@ function drawArm(ctx,from,to,av,items,detail){
   if(!detail)return;
   const bands=items.filter(b=>!b.ticketColor),tickets=items.filter(b=>b.ticketColor),ang=Math.atan2(uy,ux),fit=Math.max(1,Math.floor((len-50)/38));
   bands.slice(0,fit).forEach((b,i)=>{const t=Math.max(.08,1-(46+i*38)/len),wx=sh.x+(to.x-sh.x)*t,wy=sh.y+(to.y-sh.y)*t;CUR_POSTER=posterImg(b.rec);
-    ctx.save();ctx.translate(wx,wy);ctx.rotate(ang+Math.PI/2);ctx.translate(-26,-15);ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=4;ctx.fillStyle=b.color;ctx.fillRect(0,0,52,30);ctx.shadowColor='transparent';bandFace(ctx,b,52,30,0);ctx.restore()});
+    ctx.save();ctx.translate(wx,wy);ctx.rotate(ang+Math.PI/2);ctx.translate(-26,-15);ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(2,3,52,30);ctx.fillStyle=b.color;ctx.fillRect(0,0,52,30);bandFace(ctx,b,52,30,0);ctx.restore()});
   tickets.slice(-6).forEach((b,i,arr)=>{const k=i-(arr.length-1)/2;ctx.save();ctx.translate(to.x+ux*14,to.y+uy*14);ctx.rotate(ang-.5+k*.16);ctx.translate(k*4,-k*3);
-    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=5;ctx.fillStyle=b.ticketColor;ctx.beginPath();ctx.roundRect(-22,-34,44,68,6);ctx.fill();ctx.shadowColor='transparent';
+    ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(-20,-31,44,68);ctx.fillStyle=b.ticketColor;ctx.beginPath();ctx.roundRect(-22,-34,44,68,6);ctx.fill();
     const ink=lum(b.ticketColor)>.62?'rgba(0,0,0,.7)':'rgba(255,255,255,.88)';ctx.fillStyle=ink;ctx.fillRect(-14,-22,28,5);ctx.fillRect(-14,-12,20,4);
     ctx.setLineDash([4,4]);ctx.strokeStyle=ink;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,16);ctx.lineTo(22,16);ctx.stroke();ctx.setLineDash([]);ctx.restore()});
 }
@@ -995,13 +995,18 @@ function drawPeople(ctx,people,cx,cy,g,a0,t,alpha,detail,hits){
     if(hits)hits.push({id:P.id,x0:cx+(p.x-85)*g,x1:cx+(p.x+85)*g,y0:cy+(p.y-85)*g,y1:cy+(p.y+85)*g})});
   ctx.restore();
 }
-function renderCrowd(ctx,people,time,zoom=1){
+// 잔디밭 + 햇빛 바탕은 한 번만 만들어 두어요
+let crowdBg=null;
+function crowdBackground(){if(crowdBg)return crowdBg;const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.drawImage(grass(),0,0);
+  const sun=x.createRadialGradient(W*.85,0,0,W*.85,0,900);sun.addColorStop(0,'rgba(255,240,170,.35)');sun.addColorStop(1,'rgba(255,240,170,0)');x.fillStyle=sun;x.fillRect(0,0,W,H);return crowdBg=c}
+const crowdDrawn=new WeakSet();
+// 잔상: 바탕을 반투명하게 덮어서 지난 장면이 살짝 남게 해요 (사람을 여러 번 그리지 않아서 가볍고 깜빡이지 않아요)
+function renderCrowd(ctx,people,time,zoom=1,fresh=false){
   const moving=reduced()?0:1;time*=moving;crowdHits=[];
-  ctx.drawImage(grass(),0,0);
+  const first=fresh||!moving||!crowdDrawn.has(ctx);
+  ctx.save();ctx.globalAlpha=first?1:.38;ctx.drawImage(crowdBackground(),0,0);ctx.restore();crowdDrawn.add(ctx);
   DS=1.3;const N=people.length,lay=ringLayout(people.map(p=>p.L)),ext=N===1?people[0].L+60:lay.R+120,g=Math.min(1.1*zoom,(N===1?500:460)/ext*(N===1?Math.min(zoom,1.4):1)),cx=W/2,cy=H/2-30,spin=N===1?.5:.32;
-  for(const[dt,al]of[[.6,.1],[.45,.14],[.3,.2],[.15,.28]])drawPeople(ctx,people,cx,cy,g,(time-dt)*spin,time-dt,al,false);
   drawPeople(ctx,people,cx,cy,g,time*spin,time,1,true,crowdHits);
-  const sun=ctx.createRadialGradient(W*.85,0,0,W*.85,0,900);sun.addColorStop(0,'rgba(255,240,170,.35)');sun.addColorStop(1,'rgba(255,240,170,0)');ctx.fillStyle=sun;ctx.fillRect(0,0,W,H);
   ctx.textAlign='left';
 }
 /* outdoor (open-air) festival field */
@@ -1141,8 +1146,9 @@ function crowdUI(){
       const P=makePerson(o,pf&&pf.avatar,byOwner[o]||[],false);P.cover=(pf&&pf.cover)||{};P.name=(pf&&pf.avatar&&pf.avatar.name)||'';people.push(P)})})
     .catch(err=>{console.error(err);const h=document.getElementById('crowdHint');if(h)h.textContent='다른 사람들을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요'});
   const t0=performance.now();
+  let last=0;
   const loop=now=>{if(view!=='home'||homeMode!=='crowd'||!document.getElementById('crowd'))return;
-    renderCrowd(ctx,people,(now-t0)/1000);if(!reduced())crowdRaf=requestAnimationFrame(loop)};
+    if(now-last>=30||reduced()){last=now;renderCrowd(ctx,people,(now-t0)/1000)}if(!reduced())crowdRaf=requestAnimationFrame(loop)};
   crowdRaf=requestAnimationFrame(loop);
   cv.onclick=e=>{const b=cv.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*W,y=(e.clientY-b.top)/b.height*H;
     const hit=[...crowdHits].reverse().find(h=>x>=h.x0&&x<=h.x1&&y>=h.y0&&y<=h.y1);if(!hit)return;
@@ -1187,7 +1193,7 @@ function avatarEdit(init){
   bar.innerHTML=`<div class="bar-in"><button class="btn" id="avPrev" ${prev?'':'disabled'}>이전 모습으로</button><button class="btn primary" id="avSave">저장하기</button></div>`;
   document.body.appendChild(bar);
   const $=q=>$app.querySelector(q),cv=$('#avc'),ctx=cv.getContext('2d'),t0=performance.now();
-  const loop=now=>{if(view!=='avatar'||!document.getElementById('avc'))return;renderCrowd(ctx,[myPerson(d)],(now-t0)/1000,1.9);if(!reduced())crowdRaf=requestAnimationFrame(loop)};
+  let last=0;const loop=now=>{if(view!=='avatar'||!document.getElementById('avc'))return;if(now-last>=30){last=now;renderCrowd(ctx,[myPerson(d)],(now-t0)/1000,1.9)}if(!reduced())crowdRaf=requestAnimationFrame(loop)};
   crowdRaf=requestAnimationFrame(loop);
   $app.querySelectorAll('[data-act]').forEach(gp=>{const btns=gp.querySelectorAll('button');btns.forEach(b=>b.onclick=()=>{d[gp.dataset.act]=b.dataset.v;btns.forEach(x=>x.setAttribute('aria-pressed',x===b));if(reduced())renderCrowd(ctx,[myPerson(d)],0,1.9)})});
   $('#av-name').oninput=e=>{d.name=e.target.value};
