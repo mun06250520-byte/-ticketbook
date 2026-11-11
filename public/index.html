@@ -962,18 +962,26 @@ function drawAvatar(ctx,av){
   if(hs==='cap'){ctx.fillStyle=av.bottomColor===av.top?shade(av.top,-.2):av.bottomColor;ctx.beginPath();ctx.arc(0,4,25,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(26,4,14,22,0,-Math.PI/2,Math.PI/2);ctx.fill()}
   ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,4,18,-2.4,-1.2);ctx.stroke();
 }
-// 한 팔: 어깨에서 손까지, 손목부터 팔찌가 차례로, 손에는 티켓 묶음
+// 한 팔: 어깨를 원점으로 팔 방향(+x)에 맞춘 "팔 좌표계" 안에서 팔·팔찌·티켓을 함께 그려요.
+// 팔찌와 티켓은 팔의 자식처럼 이 좌표계에 붙어 있어서, 팔이 움직이면 같이 따라가요.
+// 순서와 간격은 기록 순서로 고정(손목부터 38px 간격), 무작위 값은 쓰지 않아요.
 function drawArm(ctx,from,to,av,items,detail){
-  const dx=to.x-from.x,dy=to.y-from.y,d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d,sh={x:from.x+ux*30,y:from.y+uy*30},len=Math.max(1,Math.hypot(to.x-sh.x,to.y-sh.y));
-  ctx.strokeStyle=av.skin;ctx.lineWidth=23*DS;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sh.x,sh.y);ctx.lineTo(to.x,to.y);ctx.stroke();
-  if(!detail)return;
-  const bands=items.filter(b=>!b.ticketColor),tickets=items.filter(b=>b.ticketColor),ang=Math.atan2(uy,ux),fit=Math.max(1,Math.floor((len-50)/38));
-  bands.slice(0,fit).forEach((b,i)=>{const t=Math.max(.08,1-(46+i*38)/len),wx=sh.x+(to.x-sh.x)*t,wy=sh.y+(to.y-sh.y)*t;CUR_POSTER=posterImg(b.rec);
-    ctx.save();ctx.translate(wx,wy);ctx.rotate(ang+Math.PI/2);ctx.translate(-26,-15);ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(2,3,52,30);ctx.fillStyle=b.color;ctx.fillRect(0,0,52,30);bandFace(ctx,b,52,30,0);ctx.restore()});
-  tickets.slice(-6).forEach((b,i,arr)=>{const k=i-(arr.length-1)/2;ctx.save();ctx.translate(to.x+ux*14,to.y+uy*14);ctx.rotate(ang-.5+k*.16);ctx.translate(k*4,-k*3);
-    ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(-20,-31,44,68);ctx.fillStyle=b.ticketColor;ctx.beginPath();ctx.roundRect(-22,-34,44,68,6);ctx.fill();
-    const ink=lum(b.ticketColor)>.62?'rgba(0,0,0,.7)':'rgba(255,255,255,.88)';ctx.fillStyle=ink;ctx.fillRect(-14,-22,28,5);ctx.fillRect(-14,-12,20,4);
-    ctx.setLineDash([4,4]);ctx.strokeStyle=ink;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,16);ctx.lineTo(22,16);ctx.stroke();ctx.setLineDash([]);ctx.restore()});
+  const dx=to.x-from.x,dy=to.y-from.y,d=Math.hypot(dx,dy)||1,len=Math.max(1,d-30);
+  ctx.save();ctx.translate(from.x+dx/d*30,from.y+dy/d*30);ctx.rotate(Math.atan2(dy,dx)); // 이제 팔은 (0,0) → (len,0)
+  ctx.strokeStyle=av.skin;ctx.lineWidth=23*DS;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(len,0);ctx.stroke();
+  if(detail){
+    const bands=items.filter(b=>!b.ticketColor),tickets=items.filter(b=>b.ticketColor);
+    // 팔찌: 손목(len-46)에서 어깨 쪽으로 38px 간격, 앞의 기록이 손목 쪽
+    bands.slice(0,12).forEach((b,i)=>{const x=Math.max(20,len-46-i*38);CUR_POSTER=posterImg(b.rec);
+      ctx.save();ctx.translate(x,0);ctx.rotate(Math.PI/2);ctx.translate(-26,-15);
+      ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(2,3,52,30);ctx.fillStyle=b.color;ctx.fillRect(0,0,52,30);bandFace(ctx,b,52,30,0);ctx.restore()});
+    // 티켓: 손에 쥔 묶음, 정해진 각도와 간격으로 부채처럼
+    tickets.slice(-6).forEach((b,i,arr)=>{const k=i-(arr.length-1)/2;ctx.save();ctx.translate(len+14+k*3,k*5);ctx.rotate(-.5+k*.16);
+      ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(-20,-31,44,68);ctx.fillStyle=b.ticketColor;ctx.beginPath();ctx.roundRect(-22,-34,44,68,6);ctx.fill();
+      const ink=lum(b.ticketColor)>.62?'rgba(0,0,0,.7)':'rgba(255,255,255,.88)';ctx.fillStyle=ink;ctx.fillRect(-14,-22,28,5);ctx.fillRect(-14,-12,20,4);
+      ctx.setLineDash([4,4]);ctx.strokeStyle=ink;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,16);ctx.lineTo(22,16);ctx.stroke();ctx.setLineDash([]);ctx.restore()});
+  }
+  ctx.restore();
 }
 function drawPeople(ctx,people,cx,cy,g,a0,t,alpha,detail,hits){
   const N=people.length;if(!N)return;const lay=ringLayout(people.map(p=>p.L));
@@ -982,7 +990,7 @@ function drawPeople(ctx,people,cx,cy,g,a0,t,alpha,detail,hits){
   if(detail){ctx.fillStyle='rgba(10,40,10,.22)';pos.forEach(p=>{ctx.beginPath();ctx.ellipse(p.x+16,p.y+20,70,52,p.a,0,7);ctx.fill()})}
   const split=it=>[it.filter((_,i)=>i%2===0),it.filter((_,i)=>i%2===1)];
   const hand=(p,q,La,Lb,sg)=>{const d=Math.hypot(q.x-p.x,q.y-p.y)||1,tt=La/(La+Lb),m={x:p.x+(q.x-p.x)*tt,y:p.y+(q.y-p.y)*tt},h=Math.sqrt(Math.max(0,La*La-(d*tt)**2))*.6,
-    nx=-(q.y-p.y)/d,ny=(q.x-p.x)/d,out=(m.x*nx+m.y*ny)>=0?1:-1;return{x:m.x+nx*h*out*sg,y:m.y+ny*h*out*sg}};
+    nx=-(q.y-p.y)/d,ny=(q.x-p.x)/d,dir=sg||((m.x*nx+m.y*ny)>=0?1:-1);return{x:m.x+nx*h*dir,y:m.y+ny*h*dir}};
   if(N===1){const p=pos[0],P=people[0],tx=-Math.sin(p.a),ty=Math.cos(p.a),[r,l]=split(P.items);
     [[1,r],[-1,l]].forEach(([sg,its])=>{const h={x:p.x+tx*sg*P.L,y:p.y+ty*sg*P.L};drawArm(ctx,p,h,P.av,its,detail);ctx.fillStyle=shade(P.av.skin,-.06);ctx.beginPath();ctx.arc(h.x,h.y,17,0,7);ctx.fill()})}
   else for(let k=0;k<(N===2?2:N);k++){const i=N===2?0:k,j=N===2?1:(k+1)%N,p=pos[i],q=pos[j],A=people[i],B=people[j],m=hand(p,q,A.L,B.L,N===2?(k?-1:1):0),
