@@ -24,6 +24,12 @@ const Cloud = {
     if (error) throw error;
   },
 
+  // 메일에 적힌 6자리 코드로 로그인 (링크가 다른 브라우저에서 열려도 지금 브라우저에 로그인돼요)
+  async verifyCode(email, token) {
+    const { error } = await this.sb.auth.verifyOtp({ email, token, type: 'email' });
+    if (error) throw error;
+  },
+
   async signOut() {
     await this.sb.auth.signOut();
   },
