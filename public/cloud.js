@@ -145,6 +145,43 @@ const Cloud = {
     if (error) throw error;
   },
 
+  // ── 분석용 기록 (supabase/analytics.sql) ─────────────────────────────
+  // 오늘(한국 시간) 방문을 한 번 남겨요. DB 가 하루 1회를 보장하고, 여기서는 같은 날 재요청만 줄여요.
+  async recordVisit() {
+    if (!this.user) return;
+    const kstDay = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+    const key = 'tb.visit.' + this.user.id;
+    try { if (localStorage.getItem(key) === kstDay) return; } catch {}
+    const { error } = await this.sb.rpc('record_visit');
+    if (error) { console.warn('visit', error.message); return; }
+    try { localStorage.setItem(key, kstDay); } catch {}
+  },
+
+  // 핵심 행동 한 번 (예: 'image_save'). 로그인 상태에서만 저장되고, 실패해도 화면은 멈추지 않아요.
+  async logEvent(event) {
+    if (!this.user) return;
+    const { error } = await this.sb.from('user_events').insert({ event });
+    if (error) console.warn('event', error.message);
+  },
+
+  // 내 동의 기록을 종류별로 '가장 최근 것' 하나씩 돌려줘요. { terms: {version, agreed, agreed_at}, ... }
+  async loadConsents() {
+    const { data, error } = await this.sb.from('user_consents')
+      .select('consent_type,version,agreed,agreed_at')
+      .order('agreed_at', { ascending: false });
+    if (error) throw error;
+    const out = {};
+    for (const r of data || []) if (!out[r.consent_type]) out[r.consent_type] = r;
+    return out;
+  },
+
+  // 동의(또는 거부/철회) 기록을 남겨요. items: [{ type: 'terms', version: '2026-11-26', agreed: true }, ...]
+  async saveConsents(items) {
+    const rows = items.map(i => ({ consent_type: i.type, version: i.version, agreed: i.agreed !== false }));
+    const { error } = await this.sb.from('user_consents').insert(rows);
+    if (error) throw error;
+  },
+
   // 이 브라우저(localStorage)의 기록을 내 계정으로 올려요. 예시 기록은 빼요.
   async importLocal(list, onProgress) {
     const todo = list.filter(r => !r.sample);
@@ -173,17 +210,28 @@ async function start() {
   window.TBCloud = Cloud;
 
   let lastUid = null;
-  const apply = async session => {
+  const apply = async (session, event) => {
     const uid = session && session.user ? session.user.id : null;
     if (uid === lastUid) return;
     lastUid = uid;
     Cloud.user = session ? session.user : null;
+    // 분석 도구: user id(무작위 UUID)만 연결. 이메일 등은 보내지 않아요.
+    const A = window.TBAnalytics;
+    if (A) {
+      A.setUser(uid);
+      if (uid && event === 'SIGNED_IN') {
+        // 이 서비스는 첫 로그인이 곧 가입이라, 계정 생성 10분 안의 로그인은 sign_up 으로 봐요.
+        const created = Date.parse(session.user.created_at || '') || 0;
+        A.track(Date.now() - created < 10 * 60e3 ? 'sign_up' : 'login', { method: 'email' });
+      }
+    }
     if (!uid) { app.useLocal(); return; }
+    Cloud.recordVisit().catch(() => {});   // 오늘 방문 1회 기록 (기다리지 않아요)
     app.cloudLoading();
     try { app.useCloud(await Cloud.loadMine()); }
     catch (e) { console.error(e); app.cloudError('기록을 불러오지 못했어요. 잠시 뒤 새로고침해 주세요'); }
   };
-  Cloud.sb.auth.onAuthStateChange((event, session) => { setTimeout(() => apply(session), 0); });
+  Cloud.sb.auth.onAuthStateChange((event, session) => { setTimeout(() => apply(session, event), 0); });
   const { data } = await Cloud.sb.auth.getSession();
   await apply(data.session);
   app.cloudReady();

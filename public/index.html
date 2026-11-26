@@ -164,6 +164,21 @@ header .btn{white-space:nowrap}
 /* 의견 보내기 */
 .fb-foot{max-width:440px;margin:28px auto 0;display:grid;justify-items:center;gap:6px}
 .fb-foot .btn{padding:10px 18px}
+/* 동의 체크박스 · 쿠키 배너 · 푸터 링크 */
+.consent{display:grid;gap:8px;text-align:left}
+.consent label{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink);font-weight:300;line-height:1.45}
+.consent input{margin:3px 0 0;width:16px;height:16px;flex:none;accent-color:var(--focus)}
+.consent label a{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap;align-self:center}
+.consent .all{font-weight:500;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.ck-bar{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(440px,calc(100% - 32px));background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;gap:8px;z-index:25;box-shadow:0 8px 30px rgba(0,0,0,.18);font-size:13px}
+.ck-bar p{margin:0;color:var(--muted);line-height:1.5}
+.ck-bar .row{display:flex;gap:6px;flex-wrap:wrap}
+.ck-bar .row .btn{padding:9px 12px;font-size:13px}
+.foot-links{display:flex;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap;justify-content:center;margin-top:4px}
+.foot-links a{color:inherit}
+.foot-links button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+.btn.danger{color:#c8202e}
+.btn.primary.danger{background:#c8202e;color:#fff}
 .fb-form textarea,.fb-form input[type=email]{width:100%;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:12px;padding:11px 12px;font:inherit}
 .fb-form textarea{min-height:130px;resize:vertical}
 .fb-form .seg{gap:6px}
@@ -174,7 +189,8 @@ header .btn{white-space:nowrap}
 
 <div class="app" id="app"></div>
 <div class="toast" id="toast" hidden></div>
-<footer class="fb-foot" id="fbFoot"><button class="btn primary" id="fbOpen" type="button">의견 보내기</button><span class="hint">불편한 점이나 바라는 기능을 알려 주세요</span></footer>
+<footer class="fb-foot" id="fbFoot"><button class="btn primary" id="fbOpen" type="button">의견 보내기</button><span class="hint">불편한 점이나 바라는 기능을 알려 주세요</span>
+  <nav class="foot-links" aria-label="정책"><a href="/privacy">개인정보처리방침</a><a href="/terms">이용약관</a><button type="button" id="ckSettings">쿠키 설정</button></nav></footer>
 
 <script>
 const W=1080,H=1350;
@@ -235,6 +251,13 @@ function persist(){if(cloudOn())return true;localRecords=records;try{localStorag
 let localRecords=records;
 const cloudOn=()=>!!(window.TBCloud&&window.TBCloud.user);
 const cloudConfigured=()=>!!(window.TBCloud&&window.TBCloud.configured);
+// 분석 이벤트 (동의 전이면 analytics.js 가 조용히 버려요). 개인정보는 넣지 않아요.
+function track(name,params){try{window.TBAnalytics&&window.TBAnalytics.track(name,params)}catch(e){}}
+// 이미지·동영상 '저장' 링크를 누르면 핵심 행동으로 기록해요 (로그인 상태면 DB 의 user_events 에도).
+document.addEventListener('click',e=>{const a=e.target&&e.target.closest&&e.target.closest('a[download]');if(!a)return;
+  const n=String(a.getAttribute('download')||'');
+  if(/.(png|jpe?g|webp)$/i.test(n)){track('image_save');if(cloudOn())window.TBCloud.logEvent('image_save')}
+  else if(/.(mp4|webm)$/i.test(n))track('video_save')});
 
 let view='home',draft=null,animT=1;
 const imgCache={};
@@ -1408,12 +1431,12 @@ function edit(id,keep){
     if(cloudOn()){
       btn.disabled=true;btn.textContent='저장하는 중…';
       try{const saved=await window.TBCloud.save(rec);const i=records.findIndex(r=>r.id===rec.id||r.id===saved.id);
-        if(i>=0)records[i]=saved;else records.push(saved);rec=saved;toast('내 계정에 보관했어요')}
+        if(i>=0)records[i]=saved;else records.push(saved);rec=saved;toast('내 계정에 보관했어요');track('record_save',{storage:'cloud'})}
       catch(err){console.error(err);btn.disabled=false;btn.textContent='기록 보관하기';toast('저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요');return}
     }else{
       const i=records.findIndex(r=>r.id===rec.id);
       if(i>=0)records[i]=rec;else records.push(rec);
-      toast(persist()?'공책에 보관했어요':'이 브라우저에서는 저장이 안 돼요. 이미지로 저장해 주세요');
+      toast(persist()?'공책에 보관했어요':'이 브라우저에서는 저장이 안 돼요. 이미지로 저장해 주세요');track('record_save',{storage:'local'});
     }
     clearPages();homeMode='book';home({focus:rec.id})};
   syncKind();bandsUI();drawAll();
@@ -1516,7 +1539,7 @@ window.TBApp={
   cloudError(m){cloudState='ready';cloudMsg=m;renderAccount();toast(m)},
   useCloud(list){cloudState='ready';records=list;pageIdx=1;
     {const C=window.TBCloud,P=C&&C.profile;if(P){if(P.avatar)myAvatar=fixAvatar(P.avatar,C.user.id);if(P.cover)coverSaved={...P.cover}}
-     else if(C&&C.user)C.saveProfile({avatar:myAvatar,cover:coverSaved}).catch(console.error)}clearPages();refreshHome()},
+     else if(C&&C.user)C.saveProfile({avatar:myAvatar,cover:coverSaved}).catch(console.error)}clearPages();refreshHome();ensureConsents()},
   useLocal(){cloudState='ready';records=localRecords;pageIdx=1;myAvatar=fixAvatar(loadJSON(AV_KEY),'me');coverSaved=loadJSON(COVER_KEY)||{};clearPages();refreshHome()},
 };
 function refreshHome(){if(view==='home')home();else renderAccount()}
@@ -1555,27 +1578,131 @@ async function importLocalRecords(btn){
 }
 function openAccount(){
   const C=window.TBCloud;if(!C)return;
-  const m=document.createElement('div');m.className='modal';
+  const m=document.createElement('div');m.className='modal';m.setAttribute('data-clarity-mask','true'); // 개인정보 화면: Clarity 녹화에서 내용 가림
   if(C.user){
     m.innerHTML=`<div class="modal-in"><b style="font-size:16px">내 계정</b><p style="text-align:left">${esc(C.user.email||'')}<br>기록은 이 계정에 저장돼서 다른 기기에서도 똑같이 보여요.</p>
-      <button class="btn" id="logout" type="button">로그아웃</button><button class="btn ghost" id="close" type="button">닫기</button></div>`;
+      <button class="btn" id="logout" type="button">로그아웃</button>
+      <button class="btn ghost" id="ckOpen" type="button">분석 쿠키 설정</button>
+      <button class="btn ghost danger" id="delAcct" type="button">회원 탈퇴</button>
+      <button class="btn ghost" id="close" type="button">닫기</button></div>`;
   }else{
     m.innerHTML=`<form class="modal-in" id="loginForm"><b style="font-size:16px">이메일로 로그인</b>
       <p style="text-align:left">이메일을 적으면 로그인 링크를 보내 드려요. 메일의 링크를 누르면 바로 로그인돼요. 처음이면 자동으로 가입돼요. 한 번 로그인하면 로그아웃하기 전까지 그 브라우저에서 계속 유지돼요.</p>
       <div class="field"><label for="loginEmail">이메일</label><input type="email" id="loginEmail" required autocomplete="email" placeholder="you@example.com"></div>
-      <button class="btn primary" type="submit" id="loginSend">로그인 링크 받기</button><span class="hint" id="loginMsg" aria-live="polite"></span>
+      ${consentHTML()}
+      <button class="btn primary" type="submit" id="loginSend" disabled>로그인 링크 받기</button><span class="hint" id="loginMsg" aria-live="polite"></span>
       <button class="btn ghost" id="close" type="button">닫기</button></form>`;
   }
   document.body.appendChild(m);
   m.onclick=e=>{if(e.target===m||e.target.id==='close')m.remove()};
   const lo=m.querySelector('#logout');if(lo)lo.onclick=async()=>{lo.disabled=true;await C.signOut();m.remove();toast('로그아웃했어요')};
+  const ck=m.querySelector('#ckOpen');if(ck)ck.onclick=()=>{m.remove();showCookieBar(true)};
+  const da=m.querySelector('#delAcct');if(da)da.onclick=()=>{m.remove();openDeleteAccount()};
   const f=m.querySelector('#loginForm');
   if(f){const em=m.querySelector('#loginEmail');setTimeout(()=>em.focus(),30);
+    wireConsent(m,ok=>{m.querySelector('#loginSend').disabled=!ok}); // 필수 3개를 모두 체크해야 버튼이 열려요
     f.onsubmit=async e=>{e.preventDefault();const b=m.querySelector('#loginSend'),msg=m.querySelector('#loginMsg');b.disabled=true;msg.textContent='보내는 중…';
+      // 아직 로그인 전이라 DB 에 못 쓰니, 체크한 사실을 이 브라우저에 두고 로그인 직후 ensureConsents() 가 저장해요.
+      try{localStorage.setItem(PENDING_KEY,JSON.stringify({version:CONSENT_VERSION,at:new Date().toISOString()}))}catch(e){}
       try{await C.signIn(em.value.trim());msg.textContent='메일을 보냈어요. 메일함에서 로그인 링크를 눌러 주세요';b.textContent='다시 보내기'}
       catch(err){console.error(err);msg.textContent=/rate|seconds/i.test(err.message||'')?'잠시 뒤 다시 시도해 주세요':'메일을 보내지 못했어요. 주소를 확인해 주세요'}
       finally{b.disabled=false}}}
 }
+// ── 서비스 이용 동의 (이용약관 · 개인정보 · 만 14세) ─────────────────
+// /terms, /privacy 문서 버전. 문서를 고치면 이 날짜를 올려요 → 모든 회원이 다음 로그인 때 다시 동의해요.
+const CONSENT_VERSION='2026-11-26';
+const REQUIRED_CONSENTS=['terms','privacy','age14'];
+const PENDING_KEY='tb.consent.pending'; // 로그인 팝업에서 체크한 사실(로그인 전이라 DB 에 못 써서 잠시 보관)
+function consentHTML(){return `<div class="consent">
+  <label class="all"><input type="checkbox" data-all> 아래 항목에 모두 동의해요</label>
+  <label><input type="checkbox" data-c="terms"> [필수] 이용약관에 동의해요 <a href="/terms" target="_blank" rel="noopener">전문 보기</a></label>
+  <label><input type="checkbox" data-c="privacy"> [필수] 개인정보 수집·이용에 동의해요 <a href="/privacy" target="_blank" rel="noopener">전문 보기</a></label>
+  <label><input type="checkbox" data-c="age14"> [필수] 만 14세 이상이에요</label>
+  <span class="hint">분석 쿠키(선택)는 가입과 별도로, 화면 아래 안내에서 정할 수 있어요.</span></div>`}
+function wireConsent(root,onChange){
+  const all=root.querySelector('[data-all]'),items=[...root.querySelectorAll('[data-c]')];
+  const sync=()=>{const ok=items.every(i=>i.checked);all.checked=ok;onChange&&onChange(ok)};
+  all.onchange=()=>{items.forEach(i=>i.checked=all.checked);sync()};items.forEach(i=>i.onchange=sync);sync();
+}
+const consentRows=()=>REQUIRED_CONSENTS.map(type=>({type,version:CONSENT_VERSION,agreed:true}));
+// 로그인 직후: 현재 버전의 필수 동의가 없으면 화면을 막고 받아요.
+// 기존 회원, 다른 기기에서 링크를 연 경우, 나중에 소셜 로그인을 붙이는 경우까지 모두 이 한 곳을 지나요.
+let consentGateOpen=false;
+async function ensureConsents(){
+  const C=window.TBCloud;if(!C||!C.user||consentGateOpen)return;
+  let have={};try{have=await C.loadConsents()}catch(e){console.error(e);return} // 못 읽으면 다음 로그인 때 다시
+  const missing=REQUIRED_CONSENTS.filter(t=>!(have[t]&&have[t].agreed&&have[t].version===CONSENT_VERSION));
+  if(!missing.length){syncAnalyticsConsent();return}
+  // 로그인 팝업에서 이미 체크했다면(같은 버전) 다시 묻지 않고 저장만 해요.
+  let pending=null;try{pending=JSON.parse(localStorage.getItem(PENDING_KEY))}catch(e){}
+  if(pending&&pending.version===CONSENT_VERSION){
+    try{await C.saveConsents(consentRows());localStorage.removeItem(PENDING_KEY);syncAnalyticsConsent();return}catch(e){console.error(e)}}
+  consentGateOpen=true;
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<form class="modal-in" id="consentForm"><b style="font-size:16px">서비스 이용 동의</b>
+    <p style="text-align:left">계속 이용하려면 아래 항목에 동의가 필요해요. 동의하지 않으면 로그아웃되고, 기록은 이 브라우저에만 남아요.</p>
+    ${consentHTML()}
+    <button class="btn primary" type="submit" id="consentOk" disabled>동의하고 계속하기</button>
+    <button class="btn ghost" type="button" id="consentNo">동의하지 않고 로그아웃</button><span class="hint" id="consentMsg" aria-live="polite"></span></form>`;
+  document.body.appendChild(m); // 바깥을 눌러도 닫히지 않아요
+  wireConsent(m,ok=>{m.querySelector('#consentOk').disabled=!ok});
+  m.querySelector('#consentNo').onclick=async()=>{m.querySelector('#consentNo').disabled=true;try{await C.signOut()}catch(e){}m.remove();consentGateOpen=false;toast('로그아웃했어요')};
+  m.querySelector('#consentForm').onsubmit=async e=>{e.preventDefault();const b=m.querySelector('#consentOk');b.disabled=true;
+    try{await C.saveConsents(consentRows());try{localStorage.removeItem(PENDING_KEY)}catch(e){}m.remove();consentGateOpen=false;toast('동의해 주셔서 고마워요');syncAnalyticsConsent()}
+    catch(err){console.error(err);b.disabled=false;m.querySelector('#consentMsg').textContent='저장하지 못했어요. 다시 눌러 주세요'}};
+}
+
+// ── 분석 쿠키 배너 (선택 동의 · 로그인 여부와 상관없이 모든 방문자) ─────────────
+// 허용 전에는 analytics.js 가 어떤 스크립트도 불러오지 않아요. 선택은 브라우저에 저장되고, 로그인 상태면 계정에도 남아요.
+function showCookieBar(force){
+  const A=window.TBAnalytics;if(!A||document.getElementById('ckBar'))return;
+  if(A.configured()===false){if(force)toast('이 사이트에는 분석 도구가 설정되어 있지 않아요');return} // 측정 ID 없음
+  if(!force&&!A.needsPrompt())return;
+  const cur=A.consent(),bar=document.createElement('div');bar.className='ck-bar';bar.id='ckBar';bar.setAttribute('role','dialog');bar.setAttribute('aria-label','분석 쿠키 안내');
+  bar.innerHTML=`<b style="font-size:14px;font-weight:500">분석 쿠키를 사용할까요? <span class="hint">(선택)</span></b>
+    <p>사이트를 어떻게 쓰는지 이해하기 위해 Google Analytics 와 Microsoft Clarity 를 써요. 허용하면 방문·클릭 같은 이용 정보가 수집되어 Google·Microsoft(국외)로 전송돼요. 이메일·이름은 보내지 않고, 거부해도 모든 기능을 그대로 쓸 수 있어요. <a href="/privacy#cookies">자세히 보기</a>${cur?`<br>지금 설정: <b>${cur.agreed?'허용':'거부'}</b>`:''}</p>
+    <div class="row"><button class="btn primary" id="ckYes" type="button">허용</button><button class="btn" id="ckNo" type="button">거부</button>${force?'<button class="btn ghost" id="ckClose" type="button">닫기</button>':''}</div>`;
+  document.body.appendChild(bar);
+  const choose=agreed=>{A.setConsent(agreed);bar.remove();toast(agreed?'분석 쿠키를 허용했어요':'분석 쿠키를 거부했어요');syncAnalyticsConsent(true)};
+  bar.querySelector('#ckYes').onclick=()=>choose(true);bar.querySelector('#ckNo').onclick=()=>choose(false);
+  const cl=bar.querySelector('#ckClose');if(cl)cl.onclick=()=>bar.remove();
+}
+// 로그인 상태면 분석 쿠키 선택을 user_consents 에도 남겨요. (force 가 아니면 같은 버전·같은 선택이 이미 있을 때 생략)
+async function syncAnalyticsConsent(force){
+  const A=window.TBAnalytics,C=window.TBCloud;if(!A||!C||!C.user)return;
+  const c=A.consent();if(!c)return;
+  try{
+    if(!force){const have=await C.loadConsents(),h=have.analytics;if(h&&h.version===c.version&&h.agreed===c.agreed)return}
+    await C.saveConsents([{type:'analytics',version:c.version,agreed:c.agreed}]);
+  }catch(e){console.error(e)}
+}
+window.addEventListener('tb:analytics-ready',()=>setTimeout(()=>showCookieBar(),1200)); // 첫 화면이 그려진 뒤 살짝 늦게
+
+// ── 회원 탈퇴 ─────────────────────────────────────────────
+// 서버 함수 /api/account/delete 가 본인 토큰을 확인한 뒤 이미지 폴더와 계정을 지워요. DB 의 나머지는 cascade 로 따라 지워져요.
+function openDeleteAccount(){
+  const C=window.TBCloud;if(!C||!C.user)return;
+  const m=document.createElement('div');m.className='modal';m.setAttribute('data-clarity-mask','true');
+  m.innerHTML=`<form class="modal-in" id="delForm"><b style="font-size:16px">회원 탈퇴</b>
+    <p style="text-align:left">탈퇴하면 계정과 함께 저장된 공연 기록, 이미지, 캐릭터·표지 설정, 방문·동의 기록이 모두 지워지고 되돌릴 수 없어요. '다 같이 보기'에 공개한 기록도 사라져요. 보내 주신 의견은 작성자 정보만 지워지고 내용은 남아요.<br><br>필요한 기록은 먼저 이미지로 저장해 두세요. 계속하려면 아래에 <b>탈퇴</b>라고 적어 주세요.</p>
+    <div class="field"><label for="delWord">확인 문구</label><input id="delWord" autocomplete="off" placeholder="탈퇴"></div>
+    <button class="btn primary danger" type="submit" id="delGo" disabled>계정 삭제하기</button><span class="hint" id="delMsg" aria-live="polite"></span>
+    <button class="btn ghost" id="close" type="button">닫기</button></form>`;
+  document.body.appendChild(m);
+  m.onclick=e=>{if(e.target===m||e.target.id==='close')m.remove()};
+  const w=m.querySelector('#delWord'),go=m.querySelector('#delGo');w.oninput=()=>{go.disabled=w.value.trim()!=='탈퇴'};setTimeout(()=>w.focus(),30);
+  m.querySelector('#delForm').onsubmit=async e=>{e.preventDefault();go.disabled=true;const msg=m.querySelector('#delMsg');msg.textContent='지우는 중…';
+    try{
+      const {data:{session}}=await C.sb.auth.getSession();if(!session)throw new Error('no session');
+      const r=await fetch('/api/account/delete',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+session.access_token},body:JSON.stringify({confirm:'탈퇴'})});
+      if(!r.ok)throw new Error('http '+r.status);
+      track('account_delete');
+      try{await C.signOut()}catch(e){}
+      try{Object.keys(localStorage).filter(k=>k.startsWith('sb-')||k===PENDING_KEY).forEach(k=>localStorage.removeItem(k))}catch(e){}
+      m.remove();toast('계정을 삭제했어요. 이용해 주셔서 고마워요');setTimeout(()=>location.replace('/'),1400);
+    }catch(err){console.error(err);go.disabled=false;msg.textContent=/http 500/.test(err.message)?'서버 설정이 아직 안 됐어요. 운영자에게 알려 주세요':'삭제하지 못했어요. 잠시 뒤 다시 시도해 주세요'}};
+}
+
 // ── 의견 보내기 ───────────────────────────────────────────
 const FB_KINDS=['좋아요','불편해요','이런 기능 있었으면','오류 신고'],FB_MAX=1000,FB_GAP=60*1000,FB_KEY='tb.feedback.last';
 let fbLastMem=0; // localStorage 를 못 쓰는 브라우저용
@@ -1590,7 +1717,7 @@ function openFeedback(){
   if(!C||!C.configured||!C.sb){toast('지금은 의견을 보낼 수 없어요. 잠시 뒤 다시 시도해 주세요');return}
   if(fbWait()>0){toast(`방금 보내 주셨어요. ${Math.ceil(fbWait()/1000)}초 뒤에 다시 보낼 수 있어요`);return}
   const page=fbPage(),device=fbDevice();let kind='';
-  const m=document.createElement('div');m.className='modal';
+  const m=document.createElement('div');m.className='modal';m.setAttribute('data-clarity-mask','true'); // 이메일 칸이 있어 Clarity 녹화에서 가림
   m.innerHTML=`<form class="modal-in fb-form" id="fbForm" novalidate><b style="font-size:16px">의견 보내기</b>
     <div class="field"><label id="fbKindL">어떤 의견인가요?</label><div class="seg" role="group" aria-labelledby="fbKindL">${FB_KINDS.map(k=>`<button class="chip" type="button" data-k="${esc(k)}" aria-pressed="false">${esc(k)}</button>`).join('')}</div></div>
     <div class="field"><label for="fbMsg">내용</label><textarea id="fbMsg" maxlength="${FB_MAX}" required placeholder="편하게 적어 주세요"></textarea><span class="fb-count" id="fbCount" aria-live="polite"></span></div>
@@ -1619,6 +1746,7 @@ function openFeedback(){
   setTimeout(()=>m.querySelector('[data-k]').focus(),30);
 }
 document.getElementById('fbOpen').onclick=openFeedback;
+document.getElementById('ckSettings').onclick=()=>showCookieBar(true);
 function showRecord(rec){
   const url=toCanvas(rec,1).toDataURL('image/jpeg',.92);
   const m=document.createElement('div');m.className='modal';
@@ -1816,6 +1944,7 @@ setTimeout(start,2500);
 document.fonts.ready.then(()=>{if(started){clearPages();view==='home'?home():drawAll()}});
 </script>
 
+<script type="module" src="/analytics.js"></script>
 <script type="module" src="/cloud.js"></script>
 </body>
 </html>

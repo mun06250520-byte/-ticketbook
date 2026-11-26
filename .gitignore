@@ -1,0 +1,8 @@
+# 로컬 조사 결과(스키마 덤프·CSV). 비밀번호·개인정보가 섞일 수 있어 올리지 않아요.
+supabase/inspect/out/
+supabase/.temp/
+supabase/.branches/
+node_modules/
+.vercel/
+.env
+.env.*

@@ -1,5 +1,7 @@
 // GET /api/config → 화면에서 쓸 Supabase 공개 설정
 // Vercel 환경 변수 SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY 를 읽어요.
+// 분석 도구의 공개 ID(GTM_ID, GA4_MEASUREMENT_ID, CLARITY_PROJECT_ID)도 함께 넘겨요. 모두 브라우저에 공개돼도 되는 값이에요.
+// SUPABASE_SERVICE_ROLE_KEY 같은 비밀 값은 이 파일이 읽지 않아요.
 // publishable(anon) 키는 브라우저에 공개돼도 되는 키예요. service_role(secret) 키는 절대 넣지 마세요.
 
 // 실수로 secret 키를 넣었을 때 화면으로 내보내지 않도록 막아요.
@@ -21,6 +23,11 @@ export default function handler(req, res) {
   if (supabaseKey && isSecretKey(supabaseKey)) {
     return res.status(500).json({ code: 'secret_key_not_allowed' });
   }
+  // 분석 도구 ID (형식이 맞는 값만 내보내요)
+  const pick = (v, re) => (re.test(String(v || '').trim()) ? String(v).trim() : '');
+  const gtmId = pick(process.env.GTM_ID, /^GTM-[A-Z0-9]{4,12}$/);
+  const ga4Id = pick(process.env.GA4_MEASUREMENT_ID, /^G-[A-Z0-9]{4,16}$/);
+  const clarityId = pick(process.env.CLARITY_PROJECT_ID, /^[a-z0-9]{6,20}$/i);
   res.setHeader('cache-control', 'public, max-age=300');
-  return res.status(200).json({ supabaseUrl, supabaseKey });
+  return res.status(200).json({ supabaseUrl, supabaseKey, gtmId, ga4Id, clarityId });
 }
